@@ -1,0 +1,22 @@
+; Engine configuration file.
+; Projet Godot 4.6 : Fric-Frac
+
+config_version=5
+
+[application]
+
+config/name="Fric-Frac"
+config/description="Jeu de cambriolage tactique au tour par tour dans une villa de Neuilly."
+run/main_scene="res://scenes/main.tscn"
+config/features=PackedStringArray("4.6", "GL Compatibility")
+
+[display]
+
+window/size/viewport_width=1920
+window/size/viewport_height=1080
+window/stretch/mode="canvas_items"
+
+[rendering]
+
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"
