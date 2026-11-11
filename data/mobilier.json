@@ -1,0 +1,13 @@
+{
+  "_source": "Planche de pions du plateau : 36 pions-mobilier posés face cachée. Les types sans butin sont une lecture des dessins, à confirmer.",
+  "total": 36,
+  "types": {
+    "secretaire":  {"nom": "secrétaire", "nombre": 6, "cases": 1, "butin": true},
+    "coffre_fort": {"nom": "coffre-fort", "nombre": 6, "cases": 1, "butin": true},
+    "armoire":     {"nom": "armoire", "nombre": 6, "cases": 2, "butin": true},
+    "gueridon":    {"nom": "guéridon", "nombre": 6, "cases": 1, "butin": false},
+    "fauteuil":    {"nom": "fauteuil", "nombre": 6, "cases": 1, "butin": false},
+    "lit":         {"nom": "lit", "nombre": 6, "cases": 2, "butin": false, "dormeur": true}
+  },
+  "pions": {"voleurs": 6, "gardes": 2}
+}

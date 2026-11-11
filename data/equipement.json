@@ -1,0 +1,14 @@
+{
+  "_source": "Livret, « équipement » : chaque joueur dispose de trois points pour équiper son voleur.",
+  "points": 3,
+  "objets": {
+    "passe_partout_1":         {"nom": "passe-partout (1 tour)", "cout": 2, "tours_gagnes": 1},
+    "passe_partout_2":         {"nom": "passe-partout (2 tours)", "cout": 3, "tours_gagnes": 2},
+    "chaussures_silencieuses": {"nom": "chaussures silencieuses", "cout": 1, "deplacement_silencieux": true},
+    "pare_balles_1":           {"nom": "pare-balles (1)", "cout": 1, "malus_de_adverse": 1},
+    "pare_balles_2":           {"nom": "pare-balles (2)", "cout": 2, "malus_de_adverse": 2},
+    "matraque":                {"nom": "matraque", "cout": 1, "arme": "matraque"},
+    "couteau":                 {"nom": "couteau", "cout": 2, "arme": "couteau"},
+    "revolver":                {"nom": "revolver", "cout": 3, "arme": "revolver"}
+  }
+}

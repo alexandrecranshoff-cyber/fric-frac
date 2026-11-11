@@ -20,11 +20,14 @@ Communication, documentation et messages de commit en français. Code (noms de v
 ## Structure
 
 - `docs/regles-originales.md` : règles du jeu de plateau, référence du moteur de règles.
+- `docs/interpretations-regles.md` : ce que le livret laisse flou et la lecture retenue.
+- `docs/plan_villa.svg` : plan redessiné depuis `data/villa.json` par `tools/dessiner_plan.py`. À régénérer après toute retouche du plan.
 - `data/` : valeurs chiffrées (tables d'effraction, de combat, de butin, équipement, plan de la villa) en JSON. Ne jamais dupliquer ces chiffres en dur dans le code.
 - `scripts/rules/` : moteur de règles pur (aucune dépendance aux nœuds de scène), entièrement testable.
 - `scripts/ai/` : comportement des pions automatiques (gardes, dormeurs, voleurs adverses joués par l'ordinateur).
 - `scripts/ui/` et `scenes/` : affichage, caméra, interface.
 - `assets/` : modèles (glTF/GLB), sprites, textures, audio. Fichiers lourds suivis par Git LFS.
+- `tools/` : petits outils hors jeu (dessin du plan).
 - `tests/` : tests automatiques des règles (`godot --headless --path . -s tests/run_tests.gd`).
 
 ## Principes

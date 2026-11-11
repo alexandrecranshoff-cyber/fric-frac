@@ -1,0 +1,15 @@
+{
+  "_source": "Tableau 2 du livret : table de combat. Résultat pour le défenseur (ou le sauteur) selon le dé, faces 1 à 6.",
+  "resultats": {
+    "saut":     ["ok", "ok", "ok", "ko", "ko", "ko"],
+    "main_nue": ["ok", "ok", "ok", "ko", "ko", "ko"],
+    "matraque": ["ok", "ok", "ko", "ko", "ko", "tue"],
+    "couteau":  ["ok", "ko", "ko", "ko", "tue", "tue"],
+    "revolver": ["ko", "ko", "ko", "tue", "tue", "tue"]
+  },
+  "a_distance": ["couteau", "revolver"],
+  "malus_par_case_d_ecart": 1,
+  "tours_ko": 2,
+  "arme_des_gardes": "revolver",
+  "revolver_donne_l_alarme": true
+}

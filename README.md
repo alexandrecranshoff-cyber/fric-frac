@@ -26,3 +26,11 @@ Puis ouvrir le dossier dans Godot (Importer > `project.godot`).
 godot --headless --path . --import
 godot --headless --path . -s tests/run_tests.gd
 ```
+
+## Plan de la villa
+
+Le plan relevé sur le plateau est dans `data/villa.json`. Pour le voir, ouvrir `docs/plan_villa.svg`. Après une retouche du plan :
+
+```bash
+python3 tools/dessiner_plan.py
+```
