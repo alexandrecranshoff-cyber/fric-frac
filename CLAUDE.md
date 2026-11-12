@@ -11,7 +11,17 @@ Jeu vidéo de cambriolage tactique au tour par tour, adapté du jeu de plateau �
 
 - Plateforme : navigateur (export web Godot, rendu Compatibilité / WebGL 2) et PC. Garder les assets légers.
 - Plateau hexagonal : la villa de Neuilly, son jardin et ses gardes.
-- Les autres décisions (points d'action, modes de jeu, style graphique) seront prises dans le document de game design (étape 3) et reportées ici.
+- Infiltration au tour par tour. Les trois tableaux du livret sont gardés tels quels : 6 points d'action par voleur, 1 point = 1 case de déplacement ou 1 colonne du tableau d'effraction. Valeurs à régler à la maquette grise.
+- Gardes : règle du livret (ronde en ligne droite, dé de direction à chaque obstacle). Ils parcourent 6 cases par tour de table, 12 dès la première alerte et jusqu'à la fin.
+- Brouillard : le joueur ne voit que les pièces où se tiennent ses voleurs, et les gardes hors de vue s'entendent à 6 cases (12 en alerte). Option « plateau ouvert » qui montre tout.
+- Bruit : portée comptée en cases à travers les murs, affichée en onde avant et après chaque geste. Dés visibles à l'écran.
+- Lumière : ambiance de nuit seulement, sans effet sur les règles dans la première version.
+- Balustrade de la terrasse : obstacle bas, 2 points pour l'enjamber ; elle arrête un garde en ronde.
+- Modes de la première version : casse en solo (trois voleurs, horloge de 24 tours), casse du jour (graine tirée de la date), tour de rôle de 2 à 6 joueurs sur le même écran. Campagne et rivaux joués par l'ordinateur plus tard.
+- Meubles toujours tirés au hasard : le placement secret par les joueurs (parties à 4 et plus) est abandonné.
+- Style : manoir à énigme du début du XXe siècle, dans l'esprit de Cluedo, de nuit (boiseries, lampes à pétrole, gardes en livrée et lanterne). Seule l'ambiance est reprise, aucun personnage, nom ni élément de Cluedo.
+- Film du casse : une partie est une graine et une liste de gestes, rejouable à l'identique.
+- Game design complet : https://claude.ai/artifact/GAYdVm9U4Wx3JAG6dwUhWP
 
 ## Langue
 
