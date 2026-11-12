@@ -13,7 +13,7 @@ Rapport de `tools/blender/verifier_personnage.py` sur `assets/models/personnages
 
 ## Mains
 
-Les mains grandes ouvertes paraissaient bizarres (avis d'Alexandre, 12 novembre 2026). `tools/blender/ajouter_doigts.py` ajoute à chaque main trois os (doigts aux jointures, à 9,5 cm du poignet ; bouts des doigts à 13,5 cm ; pouce), reprend leur part aux poids de la main avec un fondu de 1,2 cm, puis plie les doigts de 50° et 45° et rabat le pouce de 55° dans toutes les animations. Main gauche : 1 175 sommets aux doigts et 410 au pouce ; main droite : 1 543 et 378. Le squelette passe à 30 os. Les quatre doigts plient ensemble, comme une main gantée au repos.
+Les mains grandes ouvertes paraissaient bizarres (avis d'Alexandre, 12 novembre 2026). `tools/blender/ajouter_doigts.py` ajoute à chaque main trois os (doigts aux jointures, à 9,5 cm du poignet ; bouts des doigts à 13,5 cm ; pouce), reprend leur part aux poids de la main avec un fondu de 1,2 cm, puis plie les doigts de 80° et 75° et rabat le pouce de 70° dans toutes les animations (mains serrées, à la demande d'Alexandre ; d'abord 50°, 45° et 55°). Main gauche : 1 175 sommets aux doigts et 410 au pouce ; main droite : 1 543 et 378. Le squelette passe à 30 os. Les quatre doigts plient ensemble, comme une main gantée au repos.
 
 ## Rapport brut
 

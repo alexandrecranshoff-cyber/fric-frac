@@ -13,8 +13,13 @@ d'en haut, sans os par doigt.
 
 Lancement, avec le module Python « bpy » (Blender 5.3) ou dans Blender :
     python tools/blender/ajouter_doigts.py modele.glb sortie.glb [réglage=valeur ...]
-Réglages (valeurs par défaut ci-dessous) : jointure, phalange, pouce_avant,
-pli_doigts, pli_bouts, pli_pouce, pouce_vers_doigts. Exemple : pli_doigts=60
+Réglages (valeurs par défaut ci-dessous) : jointure, phalange, fondu, pouce_avant,
+pouce_debut, pli_doigts, pli_bouts, pli_pouce, pouce_vers_doigts. Exemple : pli_doigts=60
+
+Les distances (jointure, phalange, fondu, pouce_avant) sont réglées sur la Chatte
+et suivent la taille de la main : elles sont multipliées par la longueur de
+l'avant-bras du modèle rapportée à celle de la Chatte. Une distance donnée en
+réglage est prise telle quelle.
 """
 
 import math
@@ -29,11 +34,15 @@ DEFAULTS = {
 	"phalange": 0.135,     # distance du poignet à la seconde phalange
 	"fondu": 0.012,        # largeur du fondu des poids aux articulations
 	"pouce_avant": 0.032,  # écart vers l'avant au-delà duquel un sommet est au pouce
-	"pli_doigts": 50.0,    # pli aux jointures, en degrés
-	"pli_bouts": 45.0,     # pli de la seconde phalange
-	"pli_pouce": 55.0,     # pouce rabattu vers la paume
-	"pouce_vers_doigts": 25.0,  # pouce ramené le long des doigts
+	"pouce_debut": 0.0,    # distance du poignet en deçà de laquelle rien n'est au pouce (manchette, poignet large)
+	"pli_doigts": 80.0,    # pli aux jointures, en degrés
+	"pli_bouts": 75.0,     # pli de la seconde phalange
+	"pli_pouce": 70.0,     # pouce rabattu vers la paume
+	"pouce_vers_doigts": 35.0,  # pouce ramené le long des doigts
 }
+
+DISTANCES = ("jointure", "phalange", "fondu", "pouce_avant", "pouce_debut")
+FOREARM_REF_M = 0.225  # longueur de l'avant-bras de la Chatte (1,65 m), du coude au poignet
 
 
 def arguments():
@@ -41,14 +50,27 @@ def arguments():
 	files = [a for a in args if "=" not in a]
 	if len(files) != 2:
 		sys.exit(__doc__)
-	settings = dict(DEFAULTS)
+	settings = {}
 	for a in args:
 		if "=" in a:
 			key, value = a.split("=", 1)
-			if key not in settings:
+			if key not in DEFAULTS:
 				sys.exit(f"Réglage inconnu : {key}")
 			settings[key] = float(value)
 	return files[0], files[1], settings
+
+
+def scaled_settings(armature, given):
+	"""Réglages par défaut mis à l'échelle de la main, puis ceux donnés en argument."""
+	bones = armature.data.bones
+	forearm = sum(
+		(armature.matrix_world @ bones[side + "Hand"].head_local - armature.matrix_world @ bones[side + "ForeArm"].head_local).length
+		for side in ("Left", "Right")) / 2
+	scale = forearm / FOREARM_REF_M
+	settings = {k: v * scale if k in DISTANCES else v for k, v in DEFAULTS.items()}
+	settings.update(given)
+	print(f"Avant-bras : {forearm:.3f} m, distances de la main × {scale:.2f}")
+	return settings
 
 
 def smoothstep(edge0, edge1, x):
@@ -100,6 +122,8 @@ def classify(mesh, hand, s):
 			continue
 		a, f, _ = hand.local(mesh.matrix_world @ v.co)
 		thumb = smoothstep(s["pouce_avant"] - s["fondu"], s["pouce_avant"], f) * (1.0 - smoothstep(s["jointure"], s["jointure"] + s["fondu"], a))
+		if s["pouce_debut"] > 0:
+			thumb *= smoothstep(s["pouce_debut"] - s["fondu"], s["pouce_debut"], a)
 		fingers = smoothstep(s["jointure"] - s["fondu"], s["jointure"] + s["fondu"], a) * (1.0 - thumb)
 		tips = smoothstep(s["phalange"] - s["fondu"], s["phalange"] + s["fondu"], a) * (1.0 - thumb)
 		if fingers > 0 or thumb > 0:
@@ -196,13 +220,14 @@ def curl_keys(armature, names, s):
 
 
 def main():
-	source, target, s = arguments()
+	source, target, given = arguments()
 	bpy.ops.wm.read_factory_settings(use_empty=True)
 	bpy.ops.import_scene.gltf(filepath=source)
 	armature = next(o for o in bpy.context.scene.objects if o.type == "ARMATURE")
 	mesh = next(o for o in bpy.context.scene.objects if o.type == "MESH" and o.parent == armature)
 	if "LeftHandDoigts" in armature.data.bones:
 		sys.exit("Ce modèle a déjà ses os de doigts.")
+	s = scaled_settings(armature, given)
 	all_names = []
 	for side in ("Left", "Right"):
 		hand = Hand(armature, side)
