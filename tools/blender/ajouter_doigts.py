@@ -29,10 +29,10 @@ DEFAULTS = {
 	"phalange": 0.135,     # distance du poignet à la seconde phalange
 	"fondu": 0.012,        # largeur du fondu des poids aux articulations
 	"pouce_avant": 0.032,  # écart vers l'avant au-delà duquel un sommet est au pouce
-	"pli_doigts": 50.0,    # pli aux jointures, en degrés
-	"pli_bouts": 45.0,     # pli de la seconde phalange
-	"pli_pouce": 55.0,     # pouce rabattu vers la paume
-	"pouce_vers_doigts": 25.0,  # pouce ramené le long des doigts
+	"pli_doigts": 80.0,    # pli aux jointures, en degrés
+	"pli_bouts": 75.0,     # pli de la seconde phalange
+	"pli_pouce": 70.0,     # pouce rabattu vers la paume
+	"pouce_vers_doigts": 35.0,  # pouce ramené le long des doigts
 }
 
 
