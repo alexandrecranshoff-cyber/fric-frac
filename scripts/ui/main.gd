@@ -94,7 +94,9 @@ func _build_help() -> void:
 	label.text = HELP
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	label.add_theme_font_size_override("font_size", 22)
-	label.add_theme_color_override("font_color", Color(1, 1, 1, 0.8))
+	label.add_theme_color_override("font_color", Color(1, 1, 1, 0.95))
+	label.add_theme_color_override("font_outline_color", Color(0.1, 0.1, 0.12, 0.85))
+	label.add_theme_constant_override("outline_size", 8)
 	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	label.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM
 	label.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)

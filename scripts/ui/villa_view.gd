@@ -17,8 +17,10 @@ const SIDEWALK_HEIGHT := 0.045
 const ROAD_WIDTH := 7.0
 ## Le quadrillage du jeu, tracé finement par-dessus les sols.
 const GRID_WIDTH := 0.022
-const GRID_HEIGHT := 0.012
+const GRID_HEIGHT := 0.026
 const RUG_HEIGHT := 0.006
+## Les bandes d'un tapis sont posées l'une sur l'autre, assez écartées pour ne pas scintiller.
+const RUG_LAYER := 0.003
 
 const TEXTURES: Array[String] = [
 	"herbe", "gravier", "dallage", "parquet", "carrelage", "moquette", "crepi", "pierre", "brique", "bois",
@@ -215,7 +217,7 @@ func _build_rugs() -> void:
 			else:
 				# Le médaillon du centre, en losange.
 				shape = MeshBuilder.box(center, Vector2.ONE * free * 0.9 * scale, turn + PI / 4)
-			carpet.top(shape, RUG_HEIGHT + 0.0006 * i, layers[i][1], 0.9)
+			carpet.top(shape, RUG_HEIGHT + RUG_LAYER * i, layers[i][1], 0.9)
 
 
 # --- Murs, portes, fenêtres ---

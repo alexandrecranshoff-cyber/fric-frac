@@ -32,8 +32,6 @@ var _touches: Dictionary = {}
 func _ready() -> void:
 	projection = PROJECTION_PERSPECTIVE
 	fov = FIELD_OF_VIEW
-	near = 2.0
-	far = 500.0
 	get_viewport().size_changed.connect(refresh)
 	refresh()
 
@@ -67,6 +65,9 @@ func refresh() -> void:
 	var distance := height * 0.5 / tan(deg_to_rad(FIELD_OF_VIEW) * 0.5)
 	var direction := Vector3(sin(deg_to_rad(angle)), tilt, cos(deg_to_rad(angle))).normalized()
 	position = target + direction * distance
+	# Plans de coupe serrés autour du plateau : la profondeur reste précise, rien ne scintille.
+	near = maxf(1.0, distance * 0.35)
+	far = distance + 260.0
 	look_at(target, Vector3.UP)
 
 
