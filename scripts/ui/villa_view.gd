@@ -65,6 +65,8 @@ var _builders: Dictionary = {}
 ## Angles des murs à arrondir : position arrondie -> {"at", "outer"}.
 var _posts: Dictionary = {}
 var _labels: Array[Label3D] = []
+## Gardes de la maquette posés à leur poste. La partie les dessine elle-même.
+var show_guards := true
 
 
 func build(villa_plan: VillaPlan) -> void:
@@ -89,7 +91,8 @@ func build(villa_plan: VillaPlan) -> void:
 	for surface in _builders:
 		_add_mesh(surface, _builders[surface])
 	_build_trees()
-	_build_guards()
+	if show_guards:
+		_build_guards()
 	_build_room_labels()
 
 
@@ -468,23 +471,9 @@ func _build_trees() -> void:
 func _build_guards() -> void:
 	for id in plan.guards:
 		var at: Array = plan.guards[id]["case"]
-		var c := Vector2i(int(at[0]), int(at[1]))
-		var guard := Node3D.new()
-		guard.position = to_world(c)
+		var guard := guard_figure()
+		guard.position = to_world(Vector2i(int(at[0]), int(at[1])))
 		add_child(guard)
-		for side in [-1.0, 1.0]:
-			guard.add_child(_part(_cylinder(0.065, 0.065, 0.8), UNIFORM_COLOR.darkened(0.15), Vector3(0.08 * side, 0.4, 0)))
-			guard.add_child(_part(_cylinder(0.05, 0.045, 0.6), UNIFORM_COLOR, Vector3(0.21 * side, 1.02, 0)))
-		guard.add_child(_part(_cylinder(0.15, 0.17, 0.62), UNIFORM_COLOR, Vector3(0, 1.08, 0)))
-		var head := SphereMesh.new()
-		head.radius = 0.105
-		head.height = 0.23
-		head.radial_segments = 12
-		head.rings = 6
-		guard.add_child(_part(head, SKIN_COLOR, Vector3(0, 1.52, 0)))
-		# Le képi et sa visière.
-		guard.add_child(_part(_cylinder(0.105, 0.115, 0.09), UNIFORM_COLOR.darkened(0.25), Vector3(0, 1.64, 0)))
-		guard.add_child(_part(_cylinder(0.09, 0.09, 0.015), Color("15181f"), Vector3(0, 1.6, -0.08)))
 		var label := Label3D.new()
 		label.text = str(id)
 		label.font_size = 96
@@ -494,6 +483,25 @@ func _build_guards() -> void:
 		label.no_depth_test = true
 		label.position = Vector3(0, 2.05, 0)
 		guard.add_child(label)
+
+
+## Un garde en livrée, en formes simples, en attendant son modèle 3D. Regarde vers -z.
+static func guard_figure(color := UNIFORM_COLOR) -> Node3D:
+	var guard := Node3D.new()
+	for side in [-1.0, 1.0]:
+		guard.add_child(_part(_cylinder(0.065, 0.065, 0.8), color.darkened(0.15), Vector3(0.08 * side, 0.4, 0)))
+		guard.add_child(_part(_cylinder(0.05, 0.045, 0.6), color, Vector3(0.21 * side, 1.02, 0)))
+	guard.add_child(_part(_cylinder(0.15, 0.17, 0.62), color, Vector3(0, 1.08, 0)))
+	var head := SphereMesh.new()
+	head.radius = 0.105
+	head.height = 0.23
+	head.radial_segments = 12
+	head.rings = 6
+	guard.add_child(_part(head, SKIN_COLOR, Vector3(0, 1.52, 0)))
+	# Le képi et sa visière.
+	guard.add_child(_part(_cylinder(0.105, 0.115, 0.09), color.darkened(0.25), Vector3(0, 1.64, 0)))
+	guard.add_child(_part(_cylinder(0.09, 0.09, 0.015), Color("15181f"), Vector3(0, 1.6, -0.08)))
+	return guard
 
 
 static func _cylinder(top: float, bottom: float, height: float) -> CylinderMesh:

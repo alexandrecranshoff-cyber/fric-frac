@@ -7,7 +7,7 @@ config_version=5
 
 config/name="Fric-Frac"
 config/description="Jeu de cambriolage tactique au tour par tour dans une villa de Neuilly."
-run/main_scene="res://scenes/main.tscn"
+run/main_scene="res://scenes/partie.tscn"
 config/features=PackedStringArray("4.6", "Forward Plus")
 
 [display]
