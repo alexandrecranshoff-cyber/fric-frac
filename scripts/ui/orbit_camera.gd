@@ -11,6 +11,7 @@ const TILT_MIN := 0.3
 const TILT_MAX := 8.0
 const ROTATE_STEP := 60.0
 const PAN_SPEED := 12.0
+const WIDE_ASPECT := 16.0 / 9.0
 
 var target := Vector3.ZERO
 var angle := 20.0
@@ -30,6 +31,7 @@ func _ready() -> void:
 	projection = PROJECTION_ORTHOGONAL
 	near = 1.0
 	far = 200.0
+	get_viewport().size_changed.connect(refresh)
 	refresh()
 
 
@@ -54,7 +56,10 @@ func refresh() -> void:
 	zoom = clampf(zoom, ZOOM_MIN, ZOOM_MAX)
 	target.x = clampf(target.x, limits.position.x, limits.end.x)
 	target.z = clampf(target.z, limits.position.y, limits.end.y)
-	size = zoom
+	# Le zoom compte la hauteur visible ; sur un écran étroit ou tenu debout, on élargit le champ
+	# pour garder la même largeur de plateau qu'en 16/9.
+	var screen := get_viewport().get_visible_rect().size if is_inside_tree() else Vector2(16, 9)
+	size = zoom * maxf(1.0, WIDE_ASPECT * screen.y / maxf(screen.x, 1.0))
 	var direction := Vector3(sin(deg_to_rad(angle)), tilt, cos(deg_to_rad(angle))).normalized()
 	position = target + direction * 60.0
 	look_at(target, Vector3.UP)
