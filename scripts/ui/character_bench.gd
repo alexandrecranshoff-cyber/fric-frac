@@ -28,7 +28,7 @@ const CONTROL_POSE := [
 	["LeftUpLeg", Vector3.RIGHT, -45.0],
 	["LeftLeg", Vector3.RIGHT, 70.0],
 ]
-## Vues de contrôle : nom, éclairage, angle de la caméra, hauteur visée, distance, pose.
+## Vues de contrôle : nom, éclairage, angle de la caméra, hauteur visée (ou os visé), distance, pose.
 const CHECK_VIEWS := [
 	["atelier_face", "atelier", 0.0, 0.9, 3.4, false],
 	["atelier_trois_quarts", "atelier", 35.0, 0.9, 3.4, false],
@@ -37,6 +37,8 @@ const CHECK_VIEWS := [
 	["atelier_pose", "atelier", 35.0, 0.9, 3.6, true],
 	["nuit_trois_quarts", "nuit", 35.0, 0.9, 3.4, false],
 	["nuit_visage", "nuit", 25.0, 1.5, 1.0, false],
+	["atelier_main_gauche", "atelier", 60.0, "LeftHandDoigts", 0.45, false],
+	["atelier_main_droite", "atelier", -60.0, "RightHandDoigts", 0.45, false],
 ]
 
 var model: Node3D
@@ -52,6 +54,7 @@ var yaw := 35.0
 var pitch := 8.0
 var distance := 3.4
 var target_height := 0.9
+var target_bone := ""
 var turning := true
 var lighting := "atelier"
 
@@ -231,6 +234,8 @@ func _set_lighting(mode: String) -> void:
 
 func _update_camera() -> void:
 	var at := Vector3(0, target_height, 0)
+	if target_bone != "" and skeleton and skeleton.find_bone(target_bone) >= 0:
+		at = (skeleton.global_transform * skeleton.get_bone_global_pose(skeleton.find_bone(target_bone))).origin
 	var direction := Vector3(sin(deg_to_rad(yaw)), 0, cos(deg_to_rad(yaw)))
 	var offset := direction * cos(deg_to_rad(pitch)) + Vector3.UP * sin(deg_to_rad(pitch))
 	camera.position = at + offset * distance
@@ -260,15 +265,20 @@ func _save_check_views(folder: String) -> void:
 	DirAccess.make_dir_recursive_absolute(folder)
 	clip_label.visible = false
 	if player:
-		player.stop()
+		# Première image de l'attente : la pose de repos du jeu, mains comprises.
+		player.callback_mode_process = AnimationMixer.ANIMATION_CALLBACK_MODE_PROCESS_MANUAL
 	for v in CHECK_VIEWS:
 		_set_lighting(v[1])
 		model.rotation = Vector3.ZERO
 		yaw = v[2]
 		pitch = 4.0 if v[4] < 1.5 else 8.0
-		target_height = v[3]
+		target_bone = v[3] if v[3] is String else ""
+		target_height = v[3] if v[3] is float else 0.9
 		distance = v[4]
 		_set_pose(v[5])
+		if player and not v[5]:
+			_play(0, 0.0)
+			player.seek(0.0, true)
 		_update_camera()
 		for i in 4:
 			await RenderingServer.frame_post_draw
