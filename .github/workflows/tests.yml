@@ -22,4 +22,8 @@ jobs:
       - name: Importer le projet
         run: ./godot --headless --path . --import
       - name: Lancer les tests
-        run: ./godot --headless --path . -s tests/run_tests.gd
+        shell: bash
+        run: |
+          ./godot --headless --path . -s tests/run_tests.gd 2>&1 | tee resultats.txt
+          # Une erreur de script interrompt un test sans le compter en échec : on la refuse ici.
+          ! grep -q "SCRIPT ERROR" resultats.txt

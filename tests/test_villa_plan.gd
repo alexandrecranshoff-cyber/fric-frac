@@ -12,7 +12,7 @@ func test_on_circule_dans_une_piece_et_dehors() -> void:
 	assert_true(p.passable(Vector2i(13, 12), Vector2i(14, 12)))
 	# Deux cases de jardin.
 	assert_true(p.passable(Vector2i(5, 2), Vector2i(6, 2)))
-	# Jardin et terrasse : rien ne les sépare dans les données (balustrade à trancher).
+	# Jardin et terrasse : on passe, la balustrade coûte seulement des points (Movement).
 	assert_true(p.passable(Vector2i(4, 3), Vector2i(4, 4)))
 	# Deux cases éloignées ne communiquent jamais directement.
 	assert_false(p.passable(Vector2i(13, 12), Vector2i(15, 12)))

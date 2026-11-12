@@ -10,7 +10,7 @@ Ce que le livret ou le plateau ne disent pas clairement, et la lecture retenue p
 4. **Fenêtres vues de dos.** Sur les murs dont on ne voit pas la face, la fenêtre n'est qu'un double trait fin. J'en ai compté six de cette sorte, dont trois confirmées par leur appui de fenêtre dessiné côté jardin.
 5. **Portes extérieures.** Huit en tout : trois à l'ouest, trois à l'est, deux sur le perron. Celles des côtés ont un petit seuil dessiné comme l'appui des fenêtres ; je les ai lues comme des portes à cause de leur couleur rouge.
 6. **Mur d'enceinte.** Le livret parle de « cases-mur ». J'ai fait du mur un anneau de cases tout autour du jardin, avec deux cases pour la grille au sud.
-7. **Balustrade de la terrasse.** Une balustrade sépare la terrasse nord du jardin sur toute sa longueur, et une autre borde le perron. Le livret n'en dit rien. À trancher : obstacle, ou simple décor ?
+7. **Balustrade de la terrasse.** Tranché dans le game design : obstacle bas. Elle sépare la terrasse et le perron du jardin et de la cour, coûte 2 points pour l'enjamber et arrête un garde en ronde. L'escalier du perron la contourne.
 8. **Arbres.** Sept massifs, relevés sur 21 cases. Ils servent à la règle des fenêtres « adjacentes à un arbre ».
 9. **Étages.** Le saut par une fenêtre sans arbre suggère des fenêtres en hauteur, mais le plan n'a qu'un niveau. On garde un seul niveau.
 21. **Deux ouvertures côte à côte.** Sept fois sur le plan, une porte touche une autre porte ou une fenêtre (par exemple la porte [22, 11] et la fenêtre [23, 10]). Lecture retenue : on passe de l'une à l'autre si elles se touchent du même côté de leurs murs, c'est-à-dire si aucun mur n'est dessiné entre elles. C'est aussi ce que montre la maquette 3D.
@@ -29,5 +29,21 @@ Ce que le livret ou le plateau ne disent pas clairement, et la lecture retenue p
 16. **Signal d'alarme (11 et 33).** Lu comme un bruit dont la portée est la somme des dés.
 17. **Vitesse des gardes.** « Chaque joueur déplace les deux gardes d'une case » : à six joueurs, les gardes font six cases par tour de table, quand un voleur en fait six aussi. Retenu tel quel.
 18. **Portes intérieures et gardes.** La liste des obstacles qui arrêtent un garde ne cite pas les portes intérieures. Retenu : les gardes les franchissent librement.
-19. **Solitaire.** Le livret annonce un jeu « même en solitaire » sans règle particulière. À définir dans le game design.
+19. **Solitaire.** Tranché dans le game design : une bande de trois voleurs, contre une horloge de 24 tours de table. Au lever du jour, tout voleur encore dans la propriété est pris.
 20. **Voleur arrêté.** Sa partie est terminée ; le livret ne dit pas si son butin compte. Retenu : il ne compte pas.
+
+## Moteur de règles (étape 4)
+
+Lectures prises en programmant les règles, avec les réglages de `data/regles_video.json`.
+
+22. **Un point d'action, un tour.** Le livret compte l'effraction en tours passés sur place. Un point d'action passé sur une serrure vaut un tour : on lit le tableau 1 à la colonne du nombre de points dépensés, passe-partout compris. Les points s'ajoutent d'un tour à l'autre tant que le voleur ne bouge pas.
+23. **Bruit des pas.** Il porte aussi loin que le nombre de cases parcourues depuis le début du tour, et s'entend depuis la case d'arrivée de chaque déplacement.
+24. **Dormeurs.** Un dormeur n'entend le bruit qu'une fois son lit découvert : le livret ne parle de réveil qu'à propos du lit qu'on vient de retourner. Tant que le pion est face cachée, personne ne sait qu'il y a là un lit.
+25. **Voir et être vu.** Un garde repère un voleur dans la même pièce que lui, le jardin comptant pour une pièce. Sur une case de porte, un garde voit les deux pièces ; un voleur n'est que d'un côté du mur, celui d'où il vient ou celui qu'il a franchi par effraction.
+26. **Où vont les gardes.** En ronde, ils s'arrêtent devant les murs, les meubles, les fenêtres, les portes extérieures et la balustrade. En alerte ou en poursuite, ils prennent le chemin le plus court et passent aussi les portes extérieures et la balustrade, jamais les fenêtres. Une porte intérieure ne les arrête jamais.
+27. **Allure des gardes.** Six cases par tour de table, réparties entre les voleurs qui jouent, et le double dès la première alerte. Avec trois voleurs, deux cases après chacun, quatre en alerte.
+28. **Assommé.** Un pion assommé reste à terre pendant les deux tours entiers que l'attaquant joue ensuite. Assommé par un garde, un voleur perd ses deux tours suivants. Un garde ou un dormeur qui revient à lui donne l'alarme.
+29. **Riposte.** Le garde riposte toujours au revolver. Un voleur attaqué riposte avec son arme la plus sûre, et ne tire au revolver que s'il n'a rien d'autre à cette distance. Le revolver peut servir de matraque, sans bruit (livret).
+30. **Butin entre voleurs.** Assommer ou tuer un voleur rival ne déprécie pas son butin chez le receleur : la division ne vise que les gardes et les dormeurs, comme le dit le livret.
+31. **Saut.** Il se tente en sautant du mur d'enceinte, ou en quittant la villa par une fenêtre sans arbre qu'on vient de franchir. Un saut manqué coûte les deux tours suivants.
+32. **Mobilier.** Aucun meuble sur les postes des gardes, et chaque porte et chaque fenêtre garde une case libre de chaque côté de son mur.

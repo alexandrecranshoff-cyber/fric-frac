@@ -27,6 +27,10 @@ godot --headless --path . --import
 godot --headless --path . -s tests/run_tests.gd
 ```
 
+## Moteur de règles
+
+Les règles du livret sont programmées dans `scripts/rules/` et `scripts/ai/`, sans rien afficher encore. Une partie est une graine de dés et une liste de gestes : `SaveGame` la rejoue à l'identique. Chaque règle a son test dans `tests/`, et les lectures du livret prises au passage sont dans `docs/interpretations-regles.md`.
+
 ## Plan de la villa
 
 Le plan relevé sur le plateau est dans `data/villa.json`. Pour le voir, ouvrir `docs/plan_villa.svg`. Après une retouche du plan :
