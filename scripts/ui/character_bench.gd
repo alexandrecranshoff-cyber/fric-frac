@@ -5,15 +5,20 @@ extends Node3D
 ##
 ## Commandes : clic droit glissé pour tourner autour, molette pour le zoom,
 ## L pour changer d'éclairage, Espace pour arrêter ou relancer le tourniquet,
-## P pour la pose de contrôle (bras levés, genou plié) qui fait travailler la peau.
+## P pour la pose de contrôle (bras levés, genou plié) qui fait travailler la peau,
+## N ou 1 à 9 pour passer d'une animation à l'autre (attente au départ).
 ##
 ## Ligne de commande (après « -- ») :
 ##   modele=res://chemin.glb   personnage à charger (la Chatte par défaut)
 ##   vues=dossier              enregistre les vues de contrôle en PNG puis quitte
+##   film=dossier              enregistre chaque animation image par image, puis quitte
+##   animations=a,b            avec film : seulement ces animations
 
 const DEFAULT_MODEL := "res://assets/models/personnages/chatte/chatte.glb"
 const FLOOR_TEXTURE := "res://assets/textures/parquet.png"
 const TURN_SPEED := 0.35
+const FILM_FPS := 24
+const FILM_MAX_SECONDS := 8.0
 ## Pose de contrôle : os et rotation (axe local, degrés), comme dans tools/blender/verifier_personnage.py.
 const CONTROL_POSE := [
 	["LeftArm", Vector3.BACK, 55.0],
@@ -23,7 +28,7 @@ const CONTROL_POSE := [
 	["LeftUpLeg", Vector3.RIGHT, -45.0],
 	["LeftLeg", Vector3.RIGHT, 70.0],
 ]
-## Vues de contrôle : nom, éclairage, angle de la caméra, hauteur visée, distance, pose.
+## Vues de contrôle : nom, éclairage, angle de la caméra, hauteur visée (ou os visé), distance, pose.
 const CHECK_VIEWS := [
 	["atelier_face", "atelier", 0.0, 0.9, 3.4, false],
 	["atelier_trois_quarts", "atelier", 35.0, 0.9, 3.4, false],
@@ -32,10 +37,15 @@ const CHECK_VIEWS := [
 	["atelier_pose", "atelier", 35.0, 0.9, 3.6, true],
 	["nuit_trois_quarts", "nuit", 35.0, 0.9, 3.4, false],
 	["nuit_visage", "nuit", 25.0, 1.5, 1.0, false],
+	["atelier_main_gauche", "atelier", 60.0, "LeftHandDoigts", 0.45, false],
+	["atelier_main_droite", "atelier", -60.0, "RightHandDoigts", 0.45, false],
 ]
 
 var model: Node3D
 var skeleton: Skeleton3D
+var player: AnimationPlayer
+var clips := PackedStringArray()
+var clip_label: Label
 var camera: Camera3D
 var environment: Environment
 var studio_lights: Array[Light3D] = []
@@ -44,6 +54,7 @@ var yaw := 35.0
 var pitch := 8.0
 var distance := 3.4
 var target_height := 0.9
+var target_bone := ""
 var turning := true
 var lighting := "atelier"
 
@@ -51,11 +62,17 @@ var lighting := "atelier"
 func _ready() -> void:
 	var path := DEFAULT_MODEL
 	var views_folder := ""
+	var film_folder := ""
+	var only := PackedStringArray()
 	for argument in OS.get_cmdline_user_args():
 		if argument.begins_with("modele="):
 			path = argument.trim_prefix("modele=")
 		elif argument.begins_with("vues="):
 			views_folder = argument.trim_prefix("vues=")
+		elif argument.begins_with("film="):
+			film_folder = argument.trim_prefix("film=")
+		elif argument.begins_with("animations="):
+			only = argument.trim_prefix("animations=").split(",")
 	_build_environment()
 	_build_floor()
 	_build_lights()
@@ -65,9 +82,14 @@ func _ready() -> void:
 	add_child(camera)
 	_set_lighting("atelier")
 	_update_camera()
+	_build_label()
+	_play(0)
 	if views_folder != "":
 		turning = false
 		_save_check_views(views_folder)
+	elif film_folder != "":
+		turning = false
+		_save_film(film_folder, only)
 
 
 func _process(delta: float) -> void:
@@ -95,6 +117,11 @@ func _unhandled_input(event: InputEvent) -> void:
 				turning = not turning
 			KEY_P:
 				_set_pose(not _is_posed())
+			KEY_N:
+				_play((clips.find(player.current_animation) + 1) % maxi(clips.size(), 1) if player else 0)
+			_:
+				if event.keycode >= KEY_1 and event.keycode <= KEY_9:
+					_play(event.keycode - KEY_1)
 
 
 func _load_model(path: String) -> void:
@@ -105,6 +132,31 @@ func _load_model(path: String) -> void:
 	model = scene.instantiate()
 	add_child(model)
 	skeleton = model.find_children("*", "Skeleton3D", true, false).front() as Skeleton3D
+	var players := model.find_children("*", "AnimationPlayer", true, false)
+	if not players.is_empty():
+		player = players.front() as AnimationPlayer
+		for clip in player.get_animation_list():
+			if clip != "RESET":
+				clips.append(clip)
+
+
+func _play(index: int, blend := 0.25) -> void:
+	if player == null or index >= clips.size():
+		return
+	_set_pose(false)
+	player.play(clips[index], blend)
+	clip_label.text = "%d. %s   (N ou 1 à %d : autre animation)" % [index + 1, clips[index].replace("_", " "), clips.size()]
+
+
+func _build_label() -> void:
+	var layer := CanvasLayer.new()
+	add_child(layer)
+	clip_label = Label.new()
+	clip_label.position = Vector2(20, 16)
+	clip_label.add_theme_font_size_override("font_size", 44)
+	clip_label.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.8))
+	clip_label.add_theme_constant_override("outline_size", 6)
+	layer.add_child(clip_label)
 
 
 func _build_environment() -> void:
@@ -182,6 +234,8 @@ func _set_lighting(mode: String) -> void:
 
 func _update_camera() -> void:
 	var at := Vector3(0, target_height, 0)
+	if target_bone != "" and skeleton and skeleton.find_bone(target_bone) >= 0:
+		at = (skeleton.global_transform * skeleton.get_bone_global_pose(skeleton.find_bone(target_bone))).origin
 	var direction := Vector3(sin(deg_to_rad(yaw)), 0, cos(deg_to_rad(yaw)))
 	var offset := direction * cos(deg_to_rad(pitch)) + Vector3.UP * sin(deg_to_rad(pitch))
 	camera.position = at + offset * distance
@@ -195,6 +249,8 @@ func _is_posed() -> bool:
 func _set_pose(posed: bool) -> void:
 	if skeleton == null:
 		return
+	if posed and player:
+		player.stop()
 	skeleton.reset_bone_poses()
 	if posed:
 		for spec in CONTROL_POSE:
@@ -207,16 +263,49 @@ func _set_pose(posed: bool) -> void:
 
 func _save_check_views(folder: String) -> void:
 	DirAccess.make_dir_recursive_absolute(folder)
+	clip_label.visible = false
+	if player:
+		# Première image de l'attente : la pose de repos du jeu, mains comprises.
+		player.callback_mode_process = AnimationMixer.ANIMATION_CALLBACK_MODE_PROCESS_MANUAL
 	for v in CHECK_VIEWS:
 		_set_lighting(v[1])
 		model.rotation = Vector3.ZERO
 		yaw = v[2]
 		pitch = 4.0 if v[4] < 1.5 else 8.0
-		target_height = v[3]
+		target_bone = v[3] if v[3] is String else ""
+		target_height = v[3] if v[3] is float else 0.9
 		distance = v[4]
 		_set_pose(v[5])
+		if player and not v[5]:
+			_play(0, 0.0)
+			player.seek(0.0, true)
 		_update_camera()
 		for i in 4:
 			await RenderingServer.frame_post_draw
 		get_viewport().get_texture().get_image().save_png(folder.path_join(v[0] + ".png"))
+	get_tree().quit()
+
+
+## Chaque animation vue de trois quarts, à 24 images par seconde, sous l'éclairage d'atelier.
+func _save_film(folder: String, only: PackedStringArray) -> void:
+	DirAccess.make_dir_recursive_absolute(folder)
+	_set_lighting("atelier")
+	model.rotation = Vector3.ZERO
+	yaw = 35.0
+	pitch = 6.0
+	distance = 3.6
+	target_height = 0.85
+	_update_camera()
+	player.callback_mode_process = AnimationMixer.ANIMATION_CALLBACK_MODE_PROCESS_MANUAL
+	for i in clips.size():
+		if not only.is_empty() and not only.has(clips[i]):
+			continue
+		# Sans fondu : en mode manuel, le fondu n'avancerait jamais et figerait la pose précédente.
+		_play(i, 0.0)
+		var length := minf(player.current_animation_length, FILM_MAX_SECONDS)
+		for frame in int(length * FILM_FPS):
+			player.seek(float(frame) / FILM_FPS, true)
+			await RenderingServer.frame_post_draw
+			await RenderingServer.frame_post_draw
+			get_viewport().get_texture().get_image().save_png(folder.path_join("%s_%03d.png" % [clips[i], frame]))
 	get_tree().quit()

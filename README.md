@@ -59,9 +59,10 @@ Les matières sont calculées, pas photographiées : `python3 tools/generer_text
 
 ## Personnages
 
-Le banc d'essai `scenes/banc_personnage.tscn` montre un personnage sur un parquet (la Chatte par défaut). Clic droit glissé : tourner ; molette : zoom ; L : éclairage atelier ou nuit ; Espace : tourniquet ; P : pose de contrôle.
+Le banc d'essai `scenes/banc_personnage.tscn` montre un personnage sur un parquet (la Chatte par défaut). Clic droit glissé : tourner ; molette : zoom ; L : éclairage atelier ou nuit ; Espace : tourniquet ; P : pose de contrôle ; N ou 1 à 9 : animations (attente, aux aguets, marche furtive, marche accroupie, ouvrir une porte, ramasser).
 
 ```bash
 godot --path . scenes/banc_personnage.tscn -- vues=/tmp/banc
+godot --path . scenes/banc_personnage.tscn -- film=/tmp/film animations=marche_furtive
 python tools/blender/verifier_personnage.py assets/models/personnages/chatte/source/chatte_higgsfield_v2.glb /tmp/verif --rendus
 ```

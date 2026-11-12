@@ -5,11 +5,15 @@ Rapport de `tools/blender/verifier_personnage.py` sur `assets/models/personnages
 ## Bilan
 
 - Maillage : 39 049 sommets, 57 049 triangles, une seule matière, une carte UV. Hauteur 1,650 m, pieds au sol.
-- Squelette : 24 os à la nomenclature Mixamo (Hips, Spine, LeftArm…), articulations bien placées (hanches à 0,93 m, tête à 1,40 m), symétrique à quelques millimètres près. Pas d'os pour les doigts, le visage ni le foulard : mains et foulard suivent le poignet et la tête.
+- Squelette : 24 os à la nomenclature Mixamo (Hips, Spine, LeftArm…), articulations bien placées (hanches à 0,93 m, tête à 1,40 m), symétrique à quelques millimètres près. Pas d'os pour le visage ni le foulard. Les doigts ont été ajoutés ensuite (voir plus bas).
 - Peau : tous les sommets ont un poids, au plus 4 influences, sommes égales à 1. La pose de contrôle (bras levés, genou plié) déforme proprement.
-- Animation : aucune (un seul instant de pose). Les animations viendront à part, sur ce squelette.
+- Animations : six, ajoutées le 12 novembre 2026 par `tools/blender/fusionner_animations.py` (attente 4,0 s, aux aguets 7,8 s, marche furtive 2,8 s, marche accroupie 1,1 s, ouvrir une porte 5,2 s, ramasser 9,5 s). Les squelettes des animations Higgsfield ne s'écartent du modèle que de 5 à 10 mm au repos. Les deux marches sont remises sur place (`sur_place=`), le jeu déplaçant le pion lui-même : la marche accroupie avançait de 1,50 m par cycle de 1,1 s (1,3 m/s), la marche furtive était déjà sur place.
 - Texture : couleur 2048 rehaussée par `tools/blender/rehausser_texture.py` (saturation moyenne 0,11 → 0,16, écart 0,10 → 0,14, noirs creusés), normales et métal-rugosité 2048 inchangées. L'émission noire inutile du modèle brut est retirée.
 - Échelle de l'objet squelette : 0,01 (héritage d'un passage par le centimètre), compensée dans la hiérarchie : Godot l'importe à la bonne taille.
+
+## Mains
+
+Les mains grandes ouvertes paraissaient bizarres (avis d'Alexandre, 12 novembre 2026). `tools/blender/ajouter_doigts.py` ajoute à chaque main trois os (doigts aux jointures, à 9,5 cm du poignet ; bouts des doigts à 13,5 cm ; pouce), reprend leur part aux poids de la main avec un fondu de 1,2 cm, puis plie les doigts de 50° et 45° et rabat le pouce de 55° dans toutes les animations. Main gauche : 1 175 sommets aux doigts et 410 au pouce ; main droite : 1 543 et 378. Le squelette passe à 30 os. Les quatre doigts plient ensemble, comme une main gantée au repos.
 
 ## Rapport brut
 
