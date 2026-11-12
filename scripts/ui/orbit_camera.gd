@@ -1,6 +1,6 @@
 class_name OrbitCamera
 extends Camera3D
-## Caméra de maquette : vue sans perspective qui tourne autour d'un point du plateau.
+## Caméra de maquette : vue en perspective, à longue focale, qui tourne autour d'un point du plateau.
 ## Clic droit glissé : tourner et incliner. Clic gauche ou molette enfoncée glissés, flèches : déplacer.
 ## Molette : zoom. Q et E : tourner d'un sixième de tour (un côté de case). Début : vue de départ.
 ## Écran tactile : un doigt déplace, deux doigts zooment (écarter) et tournent (pivoter).
@@ -12,6 +12,8 @@ const TILT_MAX := 8.0
 const ROTATE_STEP := 60.0
 const PAN_SPEED := 12.0
 const WIDE_ASPECT := 16.0 / 9.0
+## Angle de vue étroit, comme un téléobjectif : la perspective reste douce et le plateau lisible.
+const FIELD_OF_VIEW := 28.0
 
 var target := Vector3.ZERO
 var angle := 20.0
@@ -28,9 +30,10 @@ var _touches: Dictionary = {}
 
 
 func _ready() -> void:
-	projection = PROJECTION_ORTHOGONAL
-	near = 1.0
-	far = 200.0
+	projection = PROJECTION_PERSPECTIVE
+	fov = FIELD_OF_VIEW
+	near = 2.0
+	far = 500.0
 	get_viewport().size_changed.connect(refresh)
 	refresh()
 
@@ -59,9 +62,11 @@ func refresh() -> void:
 	# Le zoom compte la hauteur visible ; sur un écran étroit ou tenu debout, on élargit le champ
 	# pour garder la même largeur de plateau qu'en 16/9.
 	var screen := get_viewport().get_visible_rect().size if is_inside_tree() else Vector2(16, 9)
-	size = zoom * maxf(1.0, WIDE_ASPECT * screen.y / maxf(screen.x, 1.0))
+	var height := zoom * maxf(1.0, WIDE_ASPECT * screen.y / maxf(screen.x, 1.0))
+	# Le zoom dit quelle hauteur de plateau tient à l'écran, au point visé.
+	var distance := height * 0.5 / tan(deg_to_rad(FIELD_OF_VIEW) * 0.5)
 	var direction := Vector3(sin(deg_to_rad(angle)), tilt, cos(deg_to_rad(angle))).normalized()
-	position = target + direction * 60.0
+	position = target + direction * distance
 	look_at(target, Vector3.UP)
 
 

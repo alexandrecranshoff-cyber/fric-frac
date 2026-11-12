@@ -51,17 +51,17 @@
   ],
   "pieces": {
     "a": {"nom": "pièce bleue du nord-ouest", "sol": "bleu"},
-    "b": {"nom": "salon au tapis rouge", "sol": "parquet"},
-    "c": {"nom": "salon au tapis rond", "sol": "parquet"},
+    "b": {"nom": "salon au tapis rouge", "sol": "parquet", "tapis": "rouge"},
+    "c": {"nom": "salon au tapis rond", "sol": "parquet", "tapis": "rond"},
     "d": {"nom": "pièce blanche du nord-est", "sol": "blanc"},
     "e": {"nom": "pièce rose de l'ouest", "sol": "rose"},
     "f": {"nom": "grande pièce rose", "sol": "rose"},
     "g": {"nom": "grande pièce blanche", "sol": "blanc"},
     "h": {"nom": "hall", "sol": "carrelage"},
-    "i": {"nom": "salon au tapis jaune", "sol": "parquet"},
+    "i": {"nom": "salon au tapis jaune", "sol": "parquet", "tapis": "jaune"},
     "j": {"nom": "pièce crème du sud", "sol": "creme"},
     "k": {"nom": "pièce bleue du sud", "sol": "bleu"},
-    "l": {"nom": "salon au tapis brun", "sol": "parquet"},
+    "l": {"nom": "salon au tapis brun", "sol": "parquet", "tapis": "brun"},
     "m": {"nom": "pièce rose du sud-est", "sol": "rose"}
   },
   "ouvertures": [

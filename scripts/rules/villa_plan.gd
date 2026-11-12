@@ -78,6 +78,11 @@ func side_zone(c: Vector2i, direction: String) -> String:
 	return _halves(c)[_half_index(c, direction)]
 
 
+## De quel côté de son mur (0 ou 1) une ouverture présente le bord tourné vers une direction.
+func opening_side(c: Vector2i, direction: String) -> int:
+	return _half_index(c, direction)
+
+
 ## Deux cases voisines communiquent-elles à pied, sans compter l'effraction ?
 ## Oui si elles se touchent du même côté des murs : on reste dans une même pièce ou dehors, et on ne
 ## change de zone qu'en traversant une case porte ou fenêtre.

@@ -37,7 +37,7 @@ python3 tools/dessiner_plan.py
 
 ## Maquette 3D de la villa
 
-Lancer le projet dans Godot (F5) affiche la villa en 3D, construite depuis `data/villa.json` : sols, murs coupés à mi-hauteur, portes, fenêtres, mur d'enceinte, arbres et gardes.
+Lancer le projet dans Godot (F5) affiche la villa en 3D, construite depuis `data/villa.json` : sols en matières (parquet, carrelage, moquette, dallage, herbe, gravier), murs coupés à hauteur d'appui, portes, fenêtres, tapis des salons, mur d'enceinte et grille, arbres et gardes. Les murs sont redressés comme sur le poster ; le quadrillage du jeu reste tracé sur les sols.
 
 - Clic droit glissé : tourner et incliner. Clic gauche glissé ou flèches : déplacer. Molette : zoom.
 - Q / E : tourner d'un côté de case. L : lettres des pièces. Début : vue de départ.
@@ -49,3 +49,5 @@ Pour enregistrer les vues de contrôle ou un tour filmé image par image :
 godot --path . -- vues=/tmp/vues
 godot --path . -- film=/tmp/film
 ```
+
+Les matières sont calculées, pas photographiées : `python3 tools/generer_textures.py` les refabrique à l'identique dans `assets/textures/` (numpy et Pillow).

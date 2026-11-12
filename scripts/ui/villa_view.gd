@@ -1,72 +1,91 @@
 class_name VillaView
 extends Node3D
-## Maquette 3D de la villa, construite entièrement depuis le plan (VillaPlan) : sols, murs coupés à
-## mi-hauteur, portes, fenêtres, mur d'enceinte, arbres et gardes. Aucune règle ici, seulement du dessin.
-## Repère : une case fait 1 de large, x vers l'est, z vers le sud, y vers le haut.
+## Maquette 3D de la villa, construite entièrement depuis le plan (VillaPlan) et son tracé redressé
+## (VillaOutline) : sols en vraies matières, murs coupés à hauteur d'appui, portes, fenêtres, tapis,
+## mur d'enceinte et grille, trottoir, arbres et gardes. Aucune règle ici, seulement du dessin.
+## Repère : une case fait 1 mètre de large, x vers l'est, z vers le sud, y vers le haut.
 
-const WALL_HEIGHT := 0.55
-const OUTER_WALL_THICKNESS := 0.16
-const INNER_WALL_THICKNESS := 0.09
-const ENCLOSURE_HEIGHT := 0.8
-const GATE_HEIGHT := 0.6
-const SILL_HEIGHT := 0.2
-## Part du mur laissée pleine de chaque côté d'une porte ou d'une fenêtre.
-const JAMB := 0.24
-## Les dalles sont un peu plus petites que leur case : le joint, plus sombre, dessine le quadrillage.
-const FLOOR_INSET := 0.93
-const JOINT_DEPTH := 0.004
-const JOINT_DARKENING := 0.22
+const WALL_HEIGHT := 0.85
+const OUTER_THICKNESS := 0.24
+const INNER_THICKNESS := 0.15
+const SILL_HEIGHT := 0.38
+const ENCLOSURE_HEIGHT := 1.05
+const ENCLOSURE_THICKNESS := 0.26
+const PILLAR_SPACING := 3.5
+const SIDEWALK_WIDTH := 1.8
+const SIDEWALK_HEIGHT := 0.045
+const ROAD_WIDTH := 7.0
+## Le quadrillage du jeu, tracé finement par-dessus les sols.
+const GRID_WIDTH := 0.022
+const GRID_HEIGHT := 0.012
+const RUG_HEIGHT := 0.006
 
-const FLOOR_COLORS := {
-	"bleu": Color("cfe6e2"), "parquet": Color("e9cf5c"), "blanc": Color("efeee2"),
-	"rose": Color("f6cdb0"), "carrelage": Color("e9e6c4"), "creme": Color("f3e3b0"),
+const TEXTURES: Array[String] = [
+	"herbe", "gravier", "dallage", "parquet", "carrelage", "moquette", "crepi", "pierre", "brique", "bois",
+	"asphalte", "feuillage",
+]
+const CARPET_COLORS := {
+	"bleu": Color("b3cccd"), "rose": Color("e2bca6"), "blanc": Color("e9e5d9"), "creme": Color("e8d8ac"),
 }
-const OUTDOOR_COLORS := {
-	".": Color("8fbf4f"), ",": Color("c9cda3"), "~": Color("e8d9a0"), "_": Color("e8d9a0"), "/": Color("d2b87c"),
+## Tapis des salons : fond, bande claire, bordure, et rotation en degrés.
+const RUGS := {
+	"rouge": {"field": Color("9a3a2d"), "band": Color("d8b98c"), "border": Color("5c2018"), "turn": 0.0},
+	"jaune": {"field": Color("d6b24a"), "band": Color("f0e3ad"), "border": Color("a07c26"), "turn": 24.0},
+	"brun": {"field": Color("86583a"), "band": Color("c9a676"), "border": Color("523320"), "turn": 0.0},
+	"rond": {"field": Color("e3c462"), "band": Color("f3e6b6"), "border": Color("bf9338"), "turn": 0.0},
 }
-const BASE_COLOR := Color("2a2622")
-const WALL_COLOR := Color("f4efe4")
-const OUTER_WALL_COLOR := Color("e6dcc6")
-const WALL_CAP_COLOR := Color("40362e")
-const BRICK_COLOR := Color("b9774d")
-const BRICK_CAP_COLOR := Color("8f5636")
-const GATE_COLOR := Color("2f6b3a")
-const DOOR_COLOR := Color("f29a1f")
-const OUTER_DOOR_COLOR := Color("d8402a")
-const GLASS_COLOR := Color(0.35, 0.72, 0.9, 0.55)
-const TRUNK_COLOR := Color("7a5230")
-const LEAF_COLOR := Color("3f8f3a")
-const GUARD_COLOR := Color("24365e")
+const PLASTER_COLOR := Color("f1ede4")
+const FACADE_COLOR := Color("ead8b4")
+const CUT_COLOR := Color("8c847a")
+const STONE_COLOR := Color("efe9da")
+const BASEBOARD_COLOR := Color("8a6a48")
+const FRAME_COLOR := Color("6f4a2a")
+const DOOR_COLOR := Color("c08a4a")
+const OUTER_DOOR_COLOR := Color("8c2f25")
+const BRASS_COLOR := Color("c9a24a")
+const WINDOW_FRAME_COLOR := Color("f4f2ec")
+const GLASS_COLOR := Color(0.62, 0.8, 0.9, 0.42)
+const IRON_COLOR := Color("1c2622")
+const SIDEWALK_COLOR := Color("b3afa6")
+const SURROUNDINGS_COLOR := Color("b4b3a8")
+const GRID_COLOR := Color(0.1, 0.08, 0.05, 0.26)
+const TRUNK_COLOR := Color("6b4a2e")
+const UNIFORM_COLOR := Color("27375f")
+const SKIN_COLOR := Color("e2b48c")
 
 ## Côté de case qui part de chaque sommet, dans l'ordre de Hex.VERTICES.
 const _EDGE_DIRECTIONS: Array[String] = ["nord_est", "est", "sud_est", "sud_ouest", "ouest", "nord_ouest"]
 
 var plan: VillaPlan
-var _solid := MeshBuilder.new()
-var _glass := MeshBuilder.new()
-## Poteaux aux bouts des murs : position arrondie -> {"at", "thickness"}.
+var outline: VillaOutline
+## Un maillage par matière : nom -> MeshBuilder.
+var _builders: Dictionary = {}
+## Angles des murs à arrondir : position arrondie -> {"at", "outer"}.
 var _posts: Dictionary = {}
 var _labels: Array[Label3D] = []
 
 
 func build(villa_plan: VillaPlan) -> void:
 	plan = villa_plan
-	_build_base()
-	for c in plan.cells():
-		if plan.is_enclosure(c):
-			_build_enclosure(c)
-		elif plan.is_opening(c):
-			_build_opening(c)
+	outline = VillaOutline.new(plan)
+	_build_surroundings()
+	_build_floors()
+	_build_grid()
+	for segment in outline.segments:
+		if segment["wall"]:
+			_build_wall(segment["a"], segment["b"], segment["outer"])
+			_note_post(segment["a"], segment["outer"])
+			_note_post(segment["b"], segment["outer"])
 		else:
-			_build_floor(_hexagon(c, 1.0), _hexagon(c, FLOOR_INSET), _floor_color(c))
-	for edge in plan.wall_edges():
-		_build_wall_edge(edge["cell"], edge["direction"])
-	for p in _posts.values():
-		var outer: bool = p["thickness"] > INNER_WALL_THICKNESS
-		_solid.post(p["at"], p["thickness"] * 0.58, 0.0, WALL_HEIGHT,
-				OUTER_WALL_COLOR if outer else WALL_COLOR, WALL_CAP_COLOR)
-	_add_mesh(_solid, _solid_material())
-	_add_mesh(_glass, _glass_material())
+			_build_edging(segment)
+	for c in plan.openings:
+		_build_opening(c)
+	for post in _posts.values():
+		_build_post(post["at"], post["outer"])
+	_build_enclosure()
+	_build_rugs()
+	for surface in _builders:
+		_add_mesh(surface, _builders[surface])
 	_build_trees()
 	_build_guards()
 	_build_room_labels()
@@ -94,162 +113,409 @@ static func to_world(cell: Vector2i, height := 0.0) -> Vector3:
 	return Vector3(p.x, height, p.y)
 
 
-func _build_base() -> void:
-	var size := plan.size()
-	var last := Hex.center(Vector2i(size.x - 1, size.y - 1))
-	var margin := 0.9
-	_solid.prism(PackedVector2Array([
-		Vector2(-margin, -margin), Vector2(last.x + 0.5 + margin, -margin),
-		Vector2(last.x + 0.5 + margin, last.y + margin), Vector2(-margin, last.y + margin),
-	]), -0.3, -0.01, BASE_COLOR, BASE_COLOR)
+# --- Sols ---
+
+func _build_floors() -> void:
+	for c in plan.cells():
+		if not plan.is_opening(c):
+			_lay_floor(_corners(c, 0, 5), outline.surface(c, "est"))
+			continue
+		# Une porte ou une fenêtre est à cheval sur son mur : chaque moitié prend le sol de son côté.
+		var wall: Array = plan.openings[c]["mur"]
+		var first := mini(Hex.VERTICES.find(wall[0]), Hex.VERTICES.find(wall[1]))
+		var second := maxi(Hex.VERTICES.find(wall[0]), Hex.VERTICES.find(wall[1]))
+		_lay_floor(_corners(c, first, second), outline.surface(c, _EDGE_DIRECTIONS[first]))
+		_lay_floor(_corners(c, second, first + 6), outline.surface(c, _EDGE_DIRECTIONS[second % 6]))
 
 
-func _build_enclosure(c: Vector2i) -> void:
-	if plan.cell(c) == "#":
-		_solid.prism(_hexagon(c, 1.0), 0.0, ENCLOSURE_HEIGHT, BRICK_COLOR, BRICK_CAP_COLOR)
+## Sommets d'une case après redressement, du rang `from` au rang `to` (qui peut dépasser 5).
+func _corners(c: Vector2i, from: int, to: int) -> PackedVector2Array:
+	var points := PackedVector2Array()
+	for i in range(from, to + 1):
+		points.append(outline.corner(c, Hex.VERTICES[i % 6]))
+	return points
+
+
+func _lay_floor(points: PackedVector2Array, kind: String) -> void:
+	match kind:
+		".":
+			_surface("herbe").top(points, 0.0, Color.WHITE, 5.0)
+		",":
+			_surface("gravier").top(points, 0.0, Color.WHITE, 3.0)
+		"~", "_":
+			_surface("dallage").top(points, 0.0, Color.WHITE, 2.4)
+		"/":
+			_surface("dallage").top(points, 0.0, Color(0.84, 0.81, 0.76), 2.4)
+		_:
+			var floor_kind: String = plan.rooms[kind]["sol"]
+			if floor_kind == "parquet":
+				# Les lames ne courent pas dans le même sens d'un salon à l'autre.
+				_surface("parquet").top(points, 0.0, Color.WHITE, 2.4, PI / 2 if "ci".contains(kind) else 0.0)
+			elif floor_kind == "carrelage":
+				_surface("carrelage").top(points, 0.0, Color.WHITE, 0.9, PI / 4)
+			else:
+				_surface("moquette").top(points, 0.0, CARPET_COLORS.get(floor_kind, Color.WHITE), 1.5)
+
+
+func _build_grid() -> void:
+	var lines := _surface("lignes")
+	for c in plan.cells():
+		if plan.is_enclosure(c):
+			continue
+		for i in 6:
+			var neighbor := Hex.step(c, _EDGE_DIRECTIONS[i])
+			# Chaque côté une seule fois : par la case de l'ouest, ou par la seule case jouable qui le touche.
+			if i >= 3 and plan.cell(neighbor) != " " and not plan.is_enclosure(neighbor):
+				continue
+			var a := outline.corner(c, Hex.VERTICES[i])
+			var b := outline.corner(c, Hex.VERTICES[(i + 1) % 6])
+			if a.distance_to(b) > 0.02:
+				lines.top(MeshBuilder.strip(a, b, GRID_WIDTH), GRID_HEIGHT, GRID_COLOR)
+
+
+## Bordure de pierre le long d'une limite entre deux sols d'extérieur.
+func _build_edging(segment: Dictionary) -> void:
+	var kinds: Array = segment["kinds"]
+	var paved := "~_/".contains(kinds[0]) or "~_/".contains(kinds[1])
+	if paved:
+		_surface("pierre").prism(MeshBuilder.strip(segment["a"], segment["b"], 0.14), 0.0, 0.06, STONE_COLOR, 1.5)
+	elif kinds.has(","):
+		_surface("pierre").prism(MeshBuilder.strip(segment["a"], segment["b"], 0.08), 0.0, 0.03, SIDEWALK_COLOR, 1.5)
+
+
+func _build_rugs() -> void:
+	for room in plan.rooms:
+		var rug_name: String = plan.rooms[room].get("tapis", "")
+		if not RUGS.has(rug_name):
+			continue
+		var rug: Dictionary = RUGS[rug_name]
+		var cells: Array[Vector2i] = []
+		var sum := Vector2.ZERO
+		for c in plan.cells():
+			if plan.zone(c) == room:
+				cells.append(c)
+				sum += Hex.center(c)
+		var center := sum / float(cells.size())
+		# Place libre autour du centre : jusqu'à la première case qui n'est plus dans la pièce.
+		var free := 100.0
+		for c in plan.cells():
+			if plan.zone(c) != room and not plan.is_enclosure(c):
+				free = minf(free, Hex.center(c).distance_to(center))
+		free -= 0.75
+		var carpet := _surface("moquette")
+		var turn := deg_to_rad(rug["turn"])
+		var layers := [[1.0, rug["border"]], [0.9, rug["band"]], [0.78, rug["field"]], [0.34, rug["band"]], [0.26, rug["border"]]]
+		for i in layers.size():
+			var scale: float = layers[i][0]
+			var shape: PackedVector2Array
+			if rug_name == "rond":
+				shape = MeshBuilder.disc(center, free * 0.95 * scale, 40)
+			elif i < 3:
+				shape = MeshBuilder.box(center, Vector2(free * 1.05, free * 0.72) * scale, turn)
+			else:
+				# Le médaillon du centre, en losange.
+				shape = MeshBuilder.box(center, Vector2.ONE * free * 0.9 * scale, turn + PI / 4)
+			carpet.top(shape, RUG_HEIGHT + 0.0006 * i, layers[i][1], 0.9)
+
+
+# --- Murs, portes, fenêtres ---
+
+func _build_wall(a: Vector2, b: Vector2, outer: bool, high := WALL_HEIGHT, cut := true) -> void:
+	if a.distance_to(b) < 0.001:
 		return
-	# Grille d'entrée : un vantail vert en travers de la case, sur le sol de la cour.
-	_build_floor(_hexagon(c, 1.0), _hexagon(c, FLOOR_INSET), OUTDOOR_COLORS[","])
-	var at := Hex.center(c)
-	_solid.wall(at - Vector2(0.5, 0.0), at + Vector2(0.5, 0.0), 0.08, 0.0, GATE_HEIGHT, GATE_COLOR, GATE_COLOR.darkened(0.3))
+	var thickness := OUTER_THICKNESS if outer else INNER_THICKNESS
+	var shape := MeshBuilder.strip(a, b, thickness)
+	_surface("crepi").sides(shape, 0.0, high, FACADE_COLOR if outer else PLASTER_COLOR, 2.0)
+	if cut:
+		_surface("uni").top(shape, high, CUT_COLOR)
+	# Soubassement de pierre dehors, plinthe de bois dedans.
+	var skirt := MeshBuilder.strip(a, b, thickness + 0.05)
+	if outer:
+		_surface("pierre").prism(skirt, 0.0, 0.16, STONE_COLOR, 1.5)
+	else:
+		_surface("bois").prism(skirt, 0.0, 0.08, BASEBOARD_COLOR, 1.0)
+
+
+func _note_post(at: Vector2, outer: bool) -> void:
+	var key := Vector2i(roundi(at.x * 1000.0), roundi(at.y * 1000.0))
+	if not _posts.has(key) or outer:
+		_posts[key] = {"at": at, "outer": outer}
+
+
+## Arrondit l'angle entre deux murs par un fût de même épaisseur.
+func _build_post(at: Vector2, outer: bool) -> void:
+	var radius := (OUTER_THICKNESS if outer else INNER_THICKNESS) * 0.5
+	var shape := MeshBuilder.disc(at, radius)
+	_surface("crepi").sides(shape, 0.0, WALL_HEIGHT, FACADE_COLOR if outer else PLASTER_COLOR, 2.0)
+	_surface("uni").top(shape, WALL_HEIGHT, CUT_COLOR)
+	var skirt := MeshBuilder.disc(at, radius + 0.025)
+	if outer:
+		_surface("pierre").prism(skirt, 0.0, 0.16, STONE_COLOR, 1.5)
+	else:
+		_surface("bois").prism(skirt, 0.0, 0.08, BASEBOARD_COLOR, 1.0)
 
 
 ## Une porte ou une fenêtre occupe toute sa case : le mur la traverse d'un sommet à l'autre,
-## avec un vantail ou une vitre au milieu, et chaque moitié de sol prend la couleur de son côté.
+## avec la baie au milieu.
 func _build_opening(c: Vector2i) -> void:
 	var opening: Dictionary = plan.openings[c]
-	var first := Hex.VERTICES.find(opening["mur"][0])
-	var second := Hex.VERTICES.find(opening["mur"][1])
-	if first > second:
-		var swap := first
-		first = second
-		second = swap
-	_build_half_floor(c, first, second)
-	_build_half_floor(c, second, first + 6)
-
+	var a := Hex.corner(c, opening["mur"][0])
+	var b := Hex.corner(c, opening["mur"][1])
 	var outer: bool = (opening["relie"] as Array).has(VillaPlan.OUTSIDE)
-	var thickness := OUTER_WALL_THICKNESS if outer else INNER_WALL_THICKNESS
-	var side := OUTER_WALL_COLOR if outer else WALL_COLOR
-	var a := Hex.corner(c, Hex.VERTICES[first])
-	var b := Hex.corner(c, Hex.VERTICES[second])
-	var left := a.lerp(b, JAMB)
-	var right := a.lerp(b, 1.0 - JAMB)
-	_solid.wall(a, left, thickness, 0.0, WALL_HEIGHT, side, WALL_CAP_COLOR)
-	_solid.wall(right, b, thickness, 0.0, WALL_HEIGHT, side, WALL_CAP_COLOR)
-	_note_post(a, thickness)
-	_note_post(b, thickness)
-	if opening["type"] == "fenetre":
-		_solid.wall(left, right, thickness, 0.0, SILL_HEIGHT, side, WALL_CAP_COLOR)
-		_glass.wall(left, right, 0.03, SILL_HEIGHT, WALL_HEIGHT, GLASS_COLOR, GLASS_COLOR)
+	var kind: String = opening["type"]
+	var width := minf(0.86 if kind != "porte_interieure" else 0.78, a.distance_to(b) - 0.18)
+	var along := (b - a).normalized()
+	var left := (a + b) * 0.5 - along * width * 0.5
+	var right := (a + b) * 0.5 + along * width * 0.5
+	_build_wall(a, left, outer)
+	_build_wall(right, b, outer)
+	_note_post(a, outer)
+	_note_post(b, outer)
+	if kind == "fenetre":
+		_build_window(left, right, outer)
 	else:
-		var leaf := OUTER_DOOR_COLOR if opening["type"] == "porte_exterieure" else DOOR_COLOR
-		_solid.wall(left, right, 0.05, 0.0, WALL_HEIGHT - 0.06, leaf, leaf.darkened(0.25))
+		_build_door(left, right, kind == "porte_exterieure", outer)
 
 
-## Moitié de dalle d'une case d'ouverture, entre deux sommets (indices dans Hex.VERTICES, le second
-## pouvant dépasser 5 pour faire le tour). Sa couleur est celle de la zone sur laquelle elle donne.
-func _build_half_floor(c: Vector2i, from: int, to: int) -> void:
-	var at := Hex.center(c)
-	var outline := PackedVector2Array()
-	var slab := PackedVector2Array()
-	for i in range(from, to + 1):
-		var corner := Hex.corner(c, Hex.VERTICES[i % 6])
-		outline.append(corner)
-		slab.append(at + (corner - at) * FLOOR_INSET)
-	var side := plan.side_zone(c, _EDGE_DIRECTIONS[from % 6])
-	var color: Color = _room_color(side, c) if plan.rooms.has(side) else OUTDOOR_COLORS["."]
-	# Dehors, on reprend le sol de la case voisine : herbe, terrasse, perron ou cour.
-	for i in range(from, to):
-		var neighbor := Hex.step(c, _EDGE_DIRECTIONS[i % 6])
-		if not plan.is_opening(neighbor) and plan.zone(neighbor) == side:
-			color = _floor_color(neighbor)
-			break
-	_build_floor(outline, slab, color)
+func _build_door(left: Vector2, right: Vector2, exterior: bool, outer: bool) -> void:
+	var along := (right - left).normalized()
+	var depth := (OUTER_THICKNESS if outer else INNER_THICKNESS) + 0.05
+	var wood := _surface("bois")
+	# Les deux montants de l'huisserie, puis le vantail fermé entre eux.
+	wood.prism(MeshBuilder.strip(left, left + along * 0.05, depth), 0.0, WALL_HEIGHT, FRAME_COLOR, 1.0)
+	wood.prism(MeshBuilder.strip(right - along * 0.05, right, depth), 0.0, WALL_HEIGHT, FRAME_COLOR, 1.0)
+	var leaf := 0.07 if exterior else 0.045
+	wood.prism(MeshBuilder.strip(left + along * 0.05, right - along * 0.05, leaf), 0.0, WALL_HEIGHT - 0.03,
+			OUTER_DOOR_COLOR if exterior else DOOR_COLOR, 0.8)
+	var knob := right - along * 0.16
+	_surface("uni").prism(MeshBuilder.strip(knob - along * 0.025, knob + along * 0.025, leaf + 0.08), 0.42, 0.46, BRASS_COLOR)
+	if exterior:
+		# Le seuil de pierre, qui dépasse du mur de chaque côté.
+		_surface("pierre").prism(MeshBuilder.strip(left, right, depth + 0.26), 0.0, 0.04, STONE_COLOR, 1.5)
 
 
-## Une dalle et son joint : le contour entier un peu plus sombre, la dalle par-dessus.
-func _build_floor(outline: PackedVector2Array, slab: PackedVector2Array, color: Color) -> void:
-	_solid.top(outline, -JOINT_DEPTH, color.darkened(JOINT_DARKENING))
-	_solid.top(slab, 0.0, color)
+func _build_window(left: Vector2, right: Vector2, outer: bool) -> void:
+	var along := (right - left).normalized()
+	var thickness := OUTER_THICKNESS if outer else INNER_THICKNESS
+	_build_wall(left, right, outer, SILL_HEIGHT, false)
+	# L'appui de pierre, puis le dormant, le meneau et les vitres.
+	_surface("pierre").prism(MeshBuilder.strip(left - along * 0.03, right + along * 0.03, thickness + 0.14),
+			SILL_HEIGHT, SILL_HEIGHT + 0.05, STONE_COLOR, 1.5)
+	var frame := _surface("uni")
+	var bottom := SILL_HEIGHT + 0.05
+	frame.prism(MeshBuilder.strip(left, right, 0.07), bottom, bottom + 0.045, WINDOW_FRAME_COLOR)
+	var middle := (left + right) * 0.5
+	for pair in [[left, left + along * 0.045], [middle - along * 0.02, middle + along * 0.02], [right - along * 0.045, right]]:
+		frame.prism(MeshBuilder.strip(pair[0], pair[1], 0.07), bottom, WALL_HEIGHT, WINDOW_FRAME_COLOR)
+	_surface("verre").prism(MeshBuilder.strip(left + along * 0.045, right - along * 0.045, 0.02), bottom + 0.045,
+			WALL_HEIGHT - 0.02, GLASS_COLOR)
 
 
-func _build_wall_edge(c: Vector2i, direction: String) -> void:
-	var opposite := Hex.opposite(direction)
-	var neighbor := Hex.step(c, direction)
-	var outer := plan.side_zone(c, direction) == VillaPlan.OUTSIDE or plan.side_zone(neighbor, opposite) == VillaPlan.OUTSIDE
-	var thickness := OUTER_WALL_THICKNESS if outer else INNER_WALL_THICKNESS
-	var ends: Array = Hex.EDGE_VERTICES[direction]
-	var a := Hex.corner(c, ends[0])
-	var b := Hex.corner(c, ends[1])
-	_solid.wall(a, b, thickness, 0.0, WALL_HEIGHT, OUTER_WALL_COLOR if outer else WALL_COLOR, WALL_CAP_COLOR)
-	_note_post(a, thickness)
-	_note_post(b, thickness)
+# --- Mur d'enceinte, grille, abords ---
+
+## Coins du mur d'enceinte : il passe par le milieu des cases-mur du plan.
+func _enclosure_rect() -> Rect2:
+	var size := plan.size()
+	return Rect2(0.75, 0.0, size.x - 1.5, Hex.center(Vector2i(0, size.y - 1)).y)
 
 
-func _note_post(at: Vector2, thickness: float) -> void:
-	var key := Vector2i(roundi(at.x * 1000.0), roundi(at.y * 1000.0))
-	if not _posts.has(key) or _posts[key]["thickness"] < thickness:
-		_posts[key] = {"at": at, "thickness": thickness}
+func _build_enclosure() -> void:
+	var rect := _enclosure_rect()
+	var gate_from := 1000.0
+	var gate_to := -1000.0
+	for c in plan.cells():
+		if plan.cell(c) == "=":
+			gate_from = minf(gate_from, Hex.center(c).x - 0.5)
+			gate_to = maxf(gate_to, Hex.center(c).x + 0.5)
+	var north_west := rect.position
+	var north_east := Vector2(rect.end.x, rect.position.y)
+	var south_west := Vector2(rect.position.x, rect.end.y)
+	var south_east := rect.end
+	var runs := [[north_west, north_east], [north_east, south_east], [north_west, south_west]]
+	if gate_from < gate_to:
+		runs.append([south_west, Vector2(gate_from, rect.end.y)])
+		runs.append([Vector2(gate_to, rect.end.y), south_east])
+		_build_gate(Vector2(gate_from, rect.end.y), Vector2(gate_to, rect.end.y))
+	else:
+		runs.append([south_west, south_east])
+	for run in runs:
+		var a: Vector2 = run[0]
+		var b: Vector2 = run[1]
+		_surface("brique").sides(MeshBuilder.strip(a, b, ENCLOSURE_THICKNESS), 0.0, ENCLOSURE_HEIGHT, Color.WHITE, 1.0)
+		_surface("pierre").prism(MeshBuilder.strip(a, b, ENCLOSURE_THICKNESS + 0.1), ENCLOSURE_HEIGHT,
+				ENCLOSURE_HEIGHT + 0.07, STONE_COLOR, 1.5)
+		var count := maxi(1, roundi(a.distance_to(b) / PILLAR_SPACING))
+		for i in count + 1:
+			_build_pillar(a.lerp(b, float(i) / count), 0.4, ENCLOSURE_HEIGHT + 0.2)
 
+
+func _build_pillar(at: Vector2, width: float, height: float) -> void:
+	var half := Vector2.ONE * width * 0.5
+	_surface("brique").sides(MeshBuilder.box(at, half), 0.0, height, Color.WHITE, 1.0)
+	_surface("pierre").prism(MeshBuilder.box(at, half + Vector2.ONE * 0.05), height, height + 0.08, STONE_COLOR, 1.5)
+	_surface("pierre").prism(MeshBuilder.box(at, half * 0.6), height + 0.08, height + 0.16, STONE_COLOR, 1.5)
+
+
+## Grille en fer forgé à deux vantaux, entre deux piliers plus hauts que les autres.
+func _build_gate(a: Vector2, b: Vector2) -> void:
+	_build_pillar(a - Vector2(0.12, 0.0), 0.56, 1.55)
+	_build_pillar(b + Vector2(0.12, 0.0), 0.56, 1.55)
+	var iron := _surface("uni")
+	var from := a + Vector2(0.18, 0.0)
+	var to := b - Vector2(0.18, 0.0)
+	var middle := (from + to) * 0.5
+	for leaf in [[from, middle - Vector2(0.015, 0.0)], [middle + Vector2(0.015, 0.0), to]]:
+		var start: Vector2 = leaf[0]
+		var end: Vector2 = leaf[1]
+		iron.prism(MeshBuilder.strip(start, end, 0.045), 0.1, 0.15, IRON_COLOR)
+		iron.prism(MeshBuilder.strip(start, end, 0.045), 1.08, 1.13, IRON_COLOR)
+		var bars := 9
+		for i in bars + 1:
+			var at := start.lerp(end, float(i) / bars)
+			# Les barreaux montent vers le milieu de la grille, en chapeau de gendarme.
+			var rise := 1.0 - absf(at.x - middle.x) / (middle.x - from.x)
+			iron.prism(MeshBuilder.box(at, Vector2.ONE * 0.016), 0.05, 1.2 + 0.28 * rise, IRON_COLOR)
+
+
+## Ce qui entoure la propriété : trottoir au pied du mur, rue devant la grille, terrain au loin.
+func _build_surroundings() -> void:
+	var rect := _enclosure_rect()
+	var outside := rect.grow(SIDEWALK_WIDTH)
+	var far := rect.grow(170.0)
+	_surface("uni").top(MeshBuilder.box(far.get_center(), far.size * 0.5), -0.06, SURROUNDINGS_COLOR)
+	var road := Rect2(far.position.x, outside.end.y, far.size.x, ROAD_WIDTH)
+	_surface("asphalte").top(MeshBuilder.box(road.get_center(), road.size * 0.5), -0.04, Color.WHITE, 3.0)
+	var sidewalk := _surface("pierre")
+	var bands := [
+		Rect2(outside.position, Vector2(outside.size.x, SIDEWALK_WIDTH)),
+		Rect2(outside.position.x, rect.end.y, outside.size.x, SIDEWALK_WIDTH),
+		Rect2(outside.position.x, rect.position.y, SIDEWALK_WIDTH, rect.size.y),
+		Rect2(rect.end.x, rect.position.y, SIDEWALK_WIDTH, rect.size.y),
+	]
+	for band in bands:
+		sidewalk.prism(MeshBuilder.box(band.get_center(), band.size * 0.5), -0.06, SIDEWALK_HEIGHT, SIDEWALK_COLOR, 1.3)
+
+
+# --- Arbres, gardes, repères ---
 
 func _build_trees() -> void:
 	if plan.trees.is_empty():
 		return
-	var trunks := MeshBuilder.new()
-	var crown := SphereMesh.new()
-	crown.radius = 0.42
-	crown.height = 0.72
-	crown.radial_segments = 12
-	crown.rings = 6
-	var material := StandardMaterial3D.new()
-	material.albedo_color = LEAF_COLOR
-	material.roughness = 1.0
-	crown.material = material
+	var trunk := CylinderMesh.new()
+	trunk.top_radius = 0.06
+	trunk.bottom_radius = 0.1
+	trunk.height = 1.2
+	trunk.radial_segments = 8
+	trunk.rings = 1
+	var bark := StandardMaterial3D.new()
+	bark.albedo_color = TRUNK_COLOR
+	bark.albedo_texture = _texture("bois")
+	bark.roughness = 1.0
+	trunk.material = bark
+	var blob := SphereMesh.new()
+	blob.radius = 0.5
+	blob.height = 0.9
+	blob.radial_segments = 14
+	blob.rings = 7
+	var leaves := StandardMaterial3D.new()
+	leaves.albedo_texture = _texture("feuillage")
+	leaves.vertex_color_use_as_albedo = true
+	leaves.uv1_scale = Vector3(2.0, 1.0, 1.0)
+	leaves.roughness = 1.0
+	blob.material = leaves
+	var blobs_per_tree := 7
+	var trunks := MultiMesh.new()
+	trunks.transform_format = MultiMesh.TRANSFORM_3D
+	trunks.mesh = trunk
+	trunks.instance_count = plan.trees.size()
 	var crowns := MultiMesh.new()
 	crowns.transform_format = MultiMesh.TRANSFORM_3D
-	crowns.mesh = crown
-	crowns.instance_count = plan.trees.size()
-	var i := 0
+	crowns.use_colors = true
+	crowns.mesh = blob
+	crowns.instance_count = plan.trees.size() * blobs_per_tree
+	var index := 0
+	var random := RandomNumberGenerator.new()
 	for c in plan.trees:
-		trunks.post(Hex.center(c), 0.07, 0.0, 0.5, TRUNK_COLOR, TRUNK_COLOR)
-		# Tailles un peu différentes d'un arbre à l'autre, toujours les mêmes d'un lancement à l'autre.
-		var scale_factor := 0.85 + 0.3 * (float((c.x * 7 + c.y * 13) % 5) / 4.0)
-		crowns.set_instance_transform(i, Transform3D(Basis().scaled(Vector3.ONE * scale_factor), to_world(c, 0.72)))
-		i += 1
-	_add_mesh(trunks, _solid_material())
-	var node := MultiMeshInstance3D.new()
-	node.multimesh = crowns
-	add_child(node)
+		# Toujours les mêmes arbres d'un lancement à l'autre : le hasard part de la case.
+		random.seed = c.x * 7919 + c.y * 104729
+		var foot := to_world(c) + Vector3(random.randf_range(-0.15, 0.15), 0.0, random.randf_range(-0.15, 0.15))
+		var size := random.randf_range(0.95, 1.35)
+		var lean := Basis(Vector3(1, 0, 0), random.randf_range(-0.08, 0.08)) * Basis(Vector3(0, 0, 1), random.randf_range(-0.08, 0.08))
+		trunks.set_instance_transform(index, Transform3D(lean.scaled(Vector3(size, size, size)), foot + Vector3(0, 0.6 * size, 0)))
+		for i in blobs_per_tree:
+			# Une touffe au sommet, les autres en couronne autour, toutes de tailles différentes.
+			var offset := Vector3(0, 1.62, 0)
+			var scale := 0.8
+			if i > 0:
+				var angle := TAU * (i + random.randf_range(-0.3, 0.3)) / (blobs_per_tree - 1)
+				var reach := random.randf_range(0.26, 0.44)
+				offset = Vector3(cos(angle) * reach, random.randf_range(1.12, 1.55), sin(angle) * reach)
+				scale = random.randf_range(0.5, 0.75)
+			var squash := Vector3(scale * random.randf_range(0.9, 1.15), scale * random.randf_range(0.75, 0.95), scale * random.randf_range(0.9, 1.15))
+			var basis := Basis(Vector3.UP, random.randf() * TAU).scaled(squash * size)
+			crowns.set_instance_transform(index * blobs_per_tree + i, Transform3D(basis, foot + offset * size))
+			var shade := random.randf_range(0.8, 1.1)
+			crowns.set_instance_color(index * blobs_per_tree + i, Color(shade * random.randf_range(0.95, 1.08), shade, shade * random.randf_range(0.85, 0.98)))
+		index += 1
+	for multimesh in [trunks, crowns]:
+		var node := MultiMeshInstance3D.new()
+		node.multimesh = multimesh
+		add_child(node)
 
 
 func _build_guards() -> void:
 	for id in plan.guards:
 		var at: Array = plan.guards[id]["case"]
 		var c := Vector2i(int(at[0]), int(at[1]))
-		var body := CapsuleMesh.new()
-		body.radius = 0.2
-		body.height = 0.75
-		body.radial_segments = 12
-		body.rings = 4
-		var material := StandardMaterial3D.new()
-		material.albedo_color = GUARD_COLOR
-		body.material = material
-		var pawn := MeshInstance3D.new()
-		pawn.mesh = body
-		pawn.position = to_world(c, 0.38)
-		add_child(pawn)
+		var guard := Node3D.new()
+		guard.position = to_world(c)
+		add_child(guard)
+		for side in [-1.0, 1.0]:
+			guard.add_child(_part(_cylinder(0.065, 0.065, 0.8), UNIFORM_COLOR.darkened(0.15), Vector3(0.08 * side, 0.4, 0)))
+			guard.add_child(_part(_cylinder(0.05, 0.045, 0.6), UNIFORM_COLOR, Vector3(0.21 * side, 1.02, 0)))
+		guard.add_child(_part(_cylinder(0.15, 0.17, 0.62), UNIFORM_COLOR, Vector3(0, 1.08, 0)))
+		var head := SphereMesh.new()
+		head.radius = 0.105
+		head.height = 0.23
+		head.radial_segments = 12
+		head.rings = 6
+		guard.add_child(_part(head, SKIN_COLOR, Vector3(0, 1.52, 0)))
+		# Le képi et sa visière.
+		guard.add_child(_part(_cylinder(0.105, 0.115, 0.09), UNIFORM_COLOR.darkened(0.25), Vector3(0, 1.64, 0)))
+		guard.add_child(_part(_cylinder(0.09, 0.09, 0.015), Color("15181f"), Vector3(0, 1.6, -0.08)))
 		var label := Label3D.new()
 		label.text = str(id)
 		label.font_size = 96
-		label.pixel_size = 0.004
+		label.pixel_size = 0.0045
 		label.outline_size = 24
 		label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 		label.no_depth_test = true
-		label.position = to_world(c, 1.05)
-		add_child(label)
+		label.position = Vector3(0, 2.05, 0)
+		guard.add_child(label)
 
 
-## Une lettre couchée sur le sol de chaque pièce, pour s'y retrouver avec le plan dessiné.
+static func _cylinder(top: float, bottom: float, height: float) -> CylinderMesh:
+	var mesh := CylinderMesh.new()
+	mesh.top_radius = top
+	mesh.bottom_radius = bottom
+	mesh.height = height
+	mesh.radial_segments = 12
+	mesh.rings = 1
+	return mesh
+
+
+static func _part(mesh: PrimitiveMesh, color: Color, at: Vector3) -> MeshInstance3D:
+	var material := StandardMaterial3D.new()
+	material.albedo_color = color
+	material.roughness = 0.9
+	mesh.material = material
+	var node := MeshInstance3D.new()
+	node.mesh = mesh
+	node.position = at
+	return node
+
+
+## Une lettre couchée sur le sol de chaque pièce, pour s'y retrouver avec le plan dessiné (touche L).
 func _build_room_labels() -> void:
 	var sums: Dictionary = {}
 	var members: Dictionary = {}
@@ -270,59 +536,57 @@ func _build_room_labels() -> void:
 		var label := Label3D.new()
 		label.text = z
 		label.font_size = 96
-		label.pixel_size = 0.005
-		label.modulate = Color(0.2, 0.17, 0.14, 0.75)
+		label.pixel_size = 0.006
+		label.modulate = Color(0.15, 0.12, 0.1, 0.85)
 		label.outline_size = 0
 		label.rotation_degrees = Vector3(-90, 0, 0)
-		label.position = to_world(best, 0.01)
+		label.position = to_world(best, 0.03)
+		label.visible = false
 		add_child(label)
 		_labels.append(label)
 
 
-func _floor_color(c: Vector2i) -> Color:
-	var ch := plan.cell(c)
-	if OUTDOOR_COLORS.has(ch):
-		return OUTDOOR_COLORS[ch]
-	if not plan.rooms.has(ch):
-		return BASE_COLOR
-	return _room_color(ch, c)
+# --- Matières ---
+
+func _surface(surface_name: String) -> MeshBuilder:
+	if not _builders.has(surface_name):
+		_builders[surface_name] = MeshBuilder.new()
+	return _builders[surface_name]
 
 
-## Couleur du sol d'une pièce ; le carrelage du hall alterne deux tons, une case sur trois.
-func _room_color(room: String, c: Vector2i) -> Color:
-	var kind: String = plan.rooms[room]["sol"]
-	var color: Color = FLOOR_COLORS.get(kind, Color.WHITE)
-	if kind == "carrelage" and posmod(c.x - (c.y - (c.y & 1)) / 2 - c.y, 3) == 0:
-		color = color.darkened(0.1)
-	return color
-
-
-func _hexagon(c: Vector2i, inset: float) -> PackedVector2Array:
-	var at := Hex.center(c)
-	var points := PackedVector2Array()
-	for vertex in Hex.VERTICES:
-		points.append(at + (Hex.corner(c, vertex) - at) * inset)
-	return points
-
-
-func _add_mesh(builder: MeshBuilder, material: Material) -> void:
+func _add_mesh(surface_name: String, builder: MeshBuilder) -> void:
 	if builder.is_empty():
 		return
 	var node := MeshInstance3D.new()
+	node.name = surface_name.capitalize()
 	node.mesh = builder.build()
-	node.material_override = material
+	node.material_override = _material(surface_name)
+	if surface_name == "lignes" or surface_name == "verre":
+		node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	add_child(node)
 
 
-static func _solid_material() -> StandardMaterial3D:
+static func _texture(texture_name: String) -> Texture2D:
+	return load("res://assets/textures/%s.png" % texture_name)
+
+
+static func _material(surface_name: String) -> StandardMaterial3D:
 	var material := StandardMaterial3D.new()
 	material.vertex_color_use_as_albedo = true
 	material.roughness = 1.0
-	return material
-
-
-static func _glass_material() -> StandardMaterial3D:
-	var material := _solid_material()
-	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	material.cull_mode = BaseMaterial3D.CULL_DISABLED
+	material.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC
+	if TEXTURES.has(surface_name):
+		material.albedo_texture = _texture(surface_name)
+	match surface_name:
+		"verre":
+			material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+			material.cull_mode = BaseMaterial3D.CULL_DISABLED
+			material.roughness = 0.1
+		"lignes":
+			material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+			material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		"carrelage":
+			material.roughness = 0.45
+		"parquet":
+			material.roughness = 0.6
 	return material

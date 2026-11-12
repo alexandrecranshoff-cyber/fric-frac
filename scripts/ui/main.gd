@@ -21,6 +21,7 @@ const CHECK_VIEWS := [
 	["dessus_sud_est", 0.0, 8.0, 9.0, Vector2(18.5, 15.0)],
 ]
 const FILM_FRAMES := 180
+const HAZE_COLOR := Color("c9d6e2")
 
 var view: VillaView
 var camera: OrbitCamera
@@ -52,24 +53,35 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _build_light() -> void:
+	# Fin d'après-midi : soleil bas et chaud, ombres longues, ciel clair qui débouche les ombres.
 	var environment := Environment.new()
 	environment.background_mode = Environment.BG_COLOR
-	environment.background_color = Color("1d2230")
+	environment.background_color = HAZE_COLOR
 	environment.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-	environment.ambient_light_color = Color(0.86, 0.88, 1.0)
-	environment.ambient_light_energy = 0.38
+	environment.ambient_light_color = Color(0.8, 0.87, 1.0)
+	environment.ambient_light_energy = 0.46
 	environment.tonemap_mode = Environment.TONE_MAPPER_LINEAR
+	environment.adjustment_enabled = true
+	environment.adjustment_saturation = 0.92
+	environment.adjustment_contrast = 1.04
+	# La brume fond le terrain lointain dans le ciel.
+	environment.fog_enabled = true
+	environment.fog_mode = Environment.FOG_MODE_DEPTH
+	environment.fog_light_color = HAZE_COLOR
+	environment.fog_depth_begin = 70.0
+	environment.fog_depth_end = 190.0
 	var world := WorldEnvironment.new()
 	world.environment = environment
 	add_child(world)
 	var sun := DirectionalLight3D.new()
-	sun.rotation_degrees = Vector3(-52, -38, 0)
-	sun.light_energy = 0.35
-	sun.light_color = Color(1.0, 0.96, 0.88)
+	sun.rotation_degrees = Vector3(-40, -52, 0)
+	sun.light_energy = 0.4
+	sun.light_color = Color(1.0, 0.93, 0.8)
 	sun.shadow_enabled = true
-	sun.shadow_opacity = 0.55
+	sun.shadow_opacity = 0.75
+	sun.shadow_blur = 1.6
 	sun.directional_shadow_mode = DirectionalLight3D.SHADOW_ORTHOGONAL
-	sun.directional_shadow_max_distance = 110.0
+	sun.directional_shadow_max_distance = 130.0
 	add_child(sun)
 	get_viewport().msaa_3d = Viewport.MSAA_4X
 

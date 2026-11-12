@@ -25,9 +25,9 @@ Communication, documentation et messages de commit en français. Code (noms de v
 - `data/` : valeurs chiffrées (tables d'effraction, de combat, de butin, équipement, plan de la villa) en JSON. Ne jamais dupliquer ces chiffres en dur dans le code.
 - `scripts/rules/` : moteur de règles pur (aucune dépendance aux nœuds de scène), entièrement testable.
 - `scripts/ai/` : comportement des pions automatiques (gardes, dormeurs, voleurs adverses joués par l'ordinateur).
-- `scripts/ui/` et `scenes/` : affichage, caméra, interface. Pour l'instant, la maquette 3D de la villa : `villa_view.gd` la construit depuis `VillaPlan`, `orbit_camera.gd` la fait visiter.
+- `scripts/ui/` et `scenes/` : affichage, caméra, interface. Pour l'instant, la maquette 3D de la villa : `villa_outline.gd` redresse le tracé des murs pour l'affichage (les règles gardent les cases), `villa_view.gd` construit la villa depuis `VillaPlan`, `orbit_camera.gd` la fait visiter.
 - `assets/` : modèles (glTF/GLB), sprites, textures, audio. Fichiers lourds suivis par Git LFS.
-- `tools/` : petits outils hors jeu (dessin du plan).
+- `tools/` : petits outils hors jeu (dessin du plan, fabrication des matières de `assets/textures/`).
 - `tests/` : tests automatiques des règles (`godot --headless --path . -s tests/run_tests.gd`).
 
 ## Principes
