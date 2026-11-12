@@ -19,6 +19,9 @@ const FLOOR_TEXTURE := "res://assets/textures/parquet.png"
 const TURN_SPEED := 0.35
 const FILM_FPS := 24
 const FILM_MAX_SECONDS := 8.0
+## Hauteur de l'articulation de la tête de la Chatte (1,65 m), sur laquelle sont réglés
+## les cadrages : un personnage plus grand est cadré d'autant plus haut et plus loin.
+const REFERENCE_HEAD_HEIGHT := 1.404
 ## Pose de contrôle : os et rotation (axe local, degrés), comme dans tools/blender/verifier_personnage.py.
 const CONTROL_POSE := [
 	["LeftArm", Vector3.BACK, 55.0],
@@ -55,6 +58,7 @@ var pitch := 8.0
 var distance := 3.4
 var target_height := 0.9
 var target_bone := ""
+var size_factor := 1.0
 var turning := true
 var lighting := "atelier"
 
@@ -132,6 +136,9 @@ func _load_model(path: String) -> void:
 	model = scene.instantiate()
 	add_child(model)
 	skeleton = model.find_children("*", "Skeleton3D", true, false).front() as Skeleton3D
+	if skeleton and skeleton.find_bone("Head") >= 0:
+		var head := skeleton.global_transform * skeleton.get_bone_global_rest(skeleton.find_bone("Head"))
+		size_factor = head.origin.y / REFERENCE_HEAD_HEIGHT
 	var players := model.find_children("*", "AnimationPlayer", true, false)
 	if not players.is_empty():
 		player = players.front() as AnimationPlayer
@@ -273,8 +280,8 @@ func _save_check_views(folder: String) -> void:
 		yaw = v[2]
 		pitch = 4.0 if v[4] < 1.5 else 8.0
 		target_bone = v[3] if v[3] is String else ""
-		target_height = v[3] if v[3] is float else 0.9
-		distance = v[4]
+		target_height = (v[3] if v[3] is float else 0.9) * size_factor
+		distance = v[4] * size_factor
 		_set_pose(v[5])
 		if player and not v[5]:
 			_play(0, 0.0)
@@ -293,8 +300,8 @@ func _save_film(folder: String, only: PackedStringArray) -> void:
 	model.rotation = Vector3.ZERO
 	yaw = 35.0
 	pitch = 6.0
-	distance = 3.6
-	target_height = 0.85
+	distance = 3.6 * size_factor
+	target_height = 0.85 * size_factor
 	_update_camera()
 	player.callback_mode_process = AnimationMixer.ANIMATION_CALLBACK_MODE_PROCESS_MANUAL
 	for i in clips.size():
