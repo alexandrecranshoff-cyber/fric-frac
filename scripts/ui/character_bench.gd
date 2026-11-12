@@ -17,7 +17,7 @@ extends Node3D
 const DEFAULT_MODEL := "res://assets/models/personnages/chatte/chatte.glb"
 const FLOOR_TEXTURE := "res://assets/textures/parquet.png"
 const TURN_SPEED := 0.35
-const FILM_FPS := 30
+const FILM_FPS := 24
 const FILM_MAX_SECONDS := 8.0
 ## Pose de contrôle : os et rotation (axe local, degrés), comme dans tools/blender/verifier_personnage.py.
 const CONTROL_POSE := [
@@ -137,11 +137,11 @@ func _load_model(path: String) -> void:
 				clips.append(clip)
 
 
-func _play(index: int) -> void:
+func _play(index: int, blend := 0.25) -> void:
 	if player == null or index >= clips.size():
 		return
 	_set_pose(false)
-	player.play(clips[index], 0.25)
+	player.play(clips[index], blend)
 	clip_label.text = "%d. %s   (N ou 1 à %d : autre animation)" % [index + 1, clips[index].replace("_", " "), clips.size()]
 
 
@@ -276,7 +276,7 @@ func _save_check_views(folder: String) -> void:
 	get_tree().quit()
 
 
-## Chaque animation vue de trois quarts, à 30 images par seconde, sous l'éclairage d'atelier.
+## Chaque animation vue de trois quarts, à 24 images par seconde, sous l'éclairage d'atelier.
 func _save_film(folder: String, only: PackedStringArray) -> void:
 	DirAccess.make_dir_recursive_absolute(folder)
 	_set_lighting("atelier")
@@ -290,7 +290,8 @@ func _save_film(folder: String, only: PackedStringArray) -> void:
 	for i in clips.size():
 		if not only.is_empty() and not only.has(clips[i]):
 			continue
-		_play(i)
+		# Sans fondu : en mode manuel, le fondu n'avancerait jamais et figerait la pose précédente.
+		_play(i, 0.0)
 		var length := minf(player.current_animation_length, FILM_MAX_SECONDS)
 		for frame in int(length * FILM_FPS):
 			player.seek(float(frame) / FILM_FPS, true)
