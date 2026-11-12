@@ -1,0 +1,13 @@
+{
+  "_source": "Tableau 1 du livret : table d'effraction. Portée du bruit, en cases, selon le nombre de tours passés sur place. 0 = pas de bruit.",
+  "tours_max": 8,
+  "portee_bruit": {
+    "grille":           [6, 5, 4, 3, 2, 1, 0, 0],
+    "porte_exterieure": [4, 3, 2, 1, 0, 0, 0, 0],
+    "fenetre":          [1, 0, 0, 0, 0, 0, 0, 0],
+    "porte_interieure": [2, 1, 0, 0, 0, 0, 0, 0],
+    "secretaire":       [3, 2, 1, 0, 0, 0, 0, 0],
+    "armoire":          [5, 4, 3, 2, 1, 0, 0, 0],
+    "coffre_fort":      [7, 6, 5, 4, 3, 2, 1, 0]
+  }
+}

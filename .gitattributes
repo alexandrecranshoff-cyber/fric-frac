@@ -15,3 +15,7 @@
 *.mp4   filter=lfs diff=lfs merge=lfs -text
 *.pdf   filter=lfs diff=lfs merge=lfs -text
 *.ttf   filter=lfs diff=lfs merge=lfs -text
+
+# Exception : les matières de la maquette sont petites (moins de 500 Ko) et refabriquées par
+# tools/generer_textures.py. Elles sont suivies directement par Git, sans LFS.
+assets/textures/*.png -filter -diff -merge binary
