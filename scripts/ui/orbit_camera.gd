@@ -21,6 +21,9 @@ var tilt := 1.1
 var zoom := 26.0
 ## Zone que le point visé ne quitte pas.
 var limits := Rect2(0, 0, 26, 21)
+## Le clic gauche glissé déplace la vue. En partie, le clic gauche sert aux gestes : on déplace
+## alors la vue au bouton du milieu, aux flèches ou au doigt.
+var left_pans := true
 
 var _home: Array = []
 var _rotating := false
@@ -97,8 +100,11 @@ func _unhandled_input(event: InputEvent) -> void:
 				refresh()
 			MOUSE_BUTTON_RIGHT:
 				_rotating = button.pressed
-			MOUSE_BUTTON_LEFT, MOUSE_BUTTON_MIDDLE:
+			MOUSE_BUTTON_MIDDLE:
 				_panning = button.pressed
+			MOUSE_BUTTON_LEFT:
+				if left_pans:
+					_panning = button.pressed
 	elif event is InputEventMouseMotion:
 		var motion := event as InputEventMouseMotion
 		if _rotating:

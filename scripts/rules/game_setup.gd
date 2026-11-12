@@ -43,13 +43,31 @@ static func new_game(data: GameData, seed_value: int, config: Dictionary) -> Gam
 	return state
 
 
-## Partie en solo du game design : la bande des trois tenues toutes faites, contre l'horloge.
+## Partie en solo du game design : la bande de trois tenues toutes faites, contre l'horloge.
 static func solo_config(data: GameData) -> Dictionary:
 	var thieves := []
-	for key in data.regles["tenues"]:
-		var outfit: Dictionary = data.regles["tenues"][key]
-		thieves.append({"nom": outfit["nom"], "joueur": 0, "equipement": outfit["equipement"].duplicate()})
+	for key in data.regles["solo"]["bande"]:
+		thieves.append(outfit_thief(data, key, 0))
 	return {"voleurs": thieves, "tours": int(data.regles["solo"]["tours"])}
+
+
+## Tour de rôle : un voleur par joueur, en tenue toute faite, sans horloge (livret).
+static func hot_seat_config(data: GameData, outfits: Array) -> Dictionary:
+	var thieves := []
+	for i in outfits.size():
+		var thief := outfit_thief(data, outfits[i], i + 1)
+		# Deux joueurs dans la même tenue : on les numérote pour les distinguer.
+		var same := outfits.slice(0, i).count(outfits[i])
+		if same > 0:
+			thief["nom"] += " %d" % (same + 1)
+		thieves.append(thief)
+	return {"voleurs": thieves, "tours": 0}
+
+
+## Un voleur dans une tenue toute faite, pour la configuration d'une partie.
+static func outfit_thief(data: GameData, key: String, player: int) -> Dictionary:
+	var outfit: Dictionary = data.regles["tenues"][key]
+	return {"nom": outfit["nom"], "joueur": player, "tenue": key, "equipement": outfit["equipement"].duplicate()}
 
 
 static func cell_of(pair: Array) -> Vector2i:

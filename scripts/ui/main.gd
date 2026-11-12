@@ -1,11 +1,11 @@
 extends Node3D
-## Scène de départ : pour l'instant, la maquette 3D de la villa à visiter avec la caméra.
+## Visite libre de la maquette 3D de la villa, de jour, depuis le menu du jeu (Échap pour y revenir).
 ##
 ## Contrôle visuel sans écran (après « -- » sur la ligne de commande) :
 ##   vues=dossier   enregistre les vues de contrôle en PNG puis quitte
 ##   film=dossier   enregistre un tour complet de la villa, image par image, puis quitte
 
-const HELP := "Clic droit glissé : tourner et incliner   ·   Clic gauche glissé ou flèches : déplacer   ·   Molette : zoom\nQ / E : tourner d'un côté de case   ·   L : lettres des pièces   ·   Début : vue de départ   ·   Tactile : un doigt déplace, deux doigts zooment et tournent"
+const HELP := "Clic droit glissé : tourner et incliner   ·   Clic gauche glissé ou flèches : déplacer   ·   Molette : zoom\nQ / E : tourner d'un côté de case   ·   L : lettres des pièces   ·   Début : vue de départ   ·   Échap : retour au menu   ·   Tactile : un doigt déplace, deux doigts zooment et tournent"
 ## Vues de contrôle : nom, angle, inclinaison, zoom, point visé (ou null pour le milieu du plateau).
 const CHECK_VIEWS := [
 	["vue_generale", 20.0, 1.1, 27.0, null],
@@ -48,8 +48,12 @@ func _ready() -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if event is InputEventKey and event.pressed and not event.echo and (event as InputEventKey).keycode == KEY_L:
-		view.set_labels_visible(not view.labels_visible())
+	if event is InputEventKey and event.pressed and not event.echo:
+		match (event as InputEventKey).keycode:
+			KEY_L:
+				view.set_labels_visible(not view.labels_visible())
+			KEY_ESCAPE:
+				get_tree().change_scene_to_file("res://scenes/partie.tscn")
 
 
 func _build_light() -> void:

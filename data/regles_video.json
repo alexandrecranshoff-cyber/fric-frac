@@ -17,10 +17,12 @@
     "ecoute_voleurs_alerte": 12
   },
   "combat": {"echanges_max": 20},
-  "solo": {"voleurs": 3, "tours": 24, "paliers": [100000, 300000, 600000]},
+  "solo": {"voleurs": 3, "tours": 24, "paliers": [100000, 300000, 600000], "bande": ["apache", "chatte", "gros_bras"]},
+  "_tenues": "Tenues toutes faites. « modele » : personnage 3D du jeu, vide pour un pion gris. Bande du solo : les trois voleurs passés en 3D (décision d'Alexandre du 12 novembre 2026).",
   "tenues": {
-    "serrurier": {"nom": "le serrurier", "equipement": ["passe_partout_2"]},
-    "chat": {"nom": "le chat", "equipement": ["chaussures_silencieuses", "pare_balles_2"]},
-    "gros_bras": {"nom": "le gros bras", "equipement": ["matraque", "passe_partout_1"]}
+    "apache": {"nom": "l'Apache", "equipement": ["couteau", "chaussures_silencieuses"], "modele": "apache"},
+    "chatte": {"nom": "la Chatte", "equipement": ["chaussures_silencieuses", "pare_balles_2"], "modele": "chatte"},
+    "gros_bras": {"nom": "le Gros bras", "equipement": ["matraque", "passe_partout_1"], "modele": "gros_bras"},
+    "serrurier": {"nom": "le Serrurier", "equipement": ["passe_partout_2"], "modele": ""}
   }
 }

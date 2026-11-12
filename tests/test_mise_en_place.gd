@@ -84,3 +84,17 @@ func test_trois_points_d_equipement() -> void:
 	assert_true(data.valid_equipment(["chaussures_silencieuses", "pare_balles_1", "matraque"]))
 	for key in data.regles["tenues"]:
 		assert_true(data.valid_equipment(data.regles["tenues"][key]["equipement"]), key)
+
+
+func test_bande_du_solo_et_tour_de_role() -> void:
+	var data := GameData.load_default()
+	var solo := GameSetup.solo_config(data)
+	assert_eq(solo["voleurs"].size(), int(data.regles["solo"]["voleurs"]))
+	assert_eq(solo["tours"], int(data.regles["solo"]["tours"]))
+	for t in solo["voleurs"]:
+		assert_true(data.valid_equipment(t["equipement"]), "tenue " + t["tenue"])
+		assert_true(data.regles["tenues"][t["tenue"]]["modele"] != "", "la bande du solo est en 3D")
+	var hot := GameSetup.hot_seat_config(data, ["apache", "chatte", "apache"])
+	assert_eq(hot["tours"], 0, "pas d'horloge en tour de rôle")
+	assert_eq(hot["voleurs"][2]["joueur"], 3)
+	assert_eq(hot["voleurs"][2]["nom"], "l'Apache 2", "deux joueurs dans la même tenue")
