@@ -34,3 +34,18 @@ Le plan relevé sur le plateau est dans `data/villa.json`. Pour le voir, ouvrir 
 ```bash
 python3 tools/dessiner_plan.py
 ```
+
+## Maquette 3D de la villa
+
+Lancer le projet dans Godot (F5) affiche la villa en 3D, construite depuis `data/villa.json` : sols, murs coupés à mi-hauteur, portes, fenêtres, mur d'enceinte, arbres et gardes.
+
+- Clic droit glissé : tourner et incliner. Clic gauche glissé ou flèches : déplacer. Molette : zoom.
+- Q / E : tourner d'un côté de case. L : lettres des pièces. Début : vue de départ.
+- Écran tactile : un doigt déplace, deux doigts zooment et tournent.
+
+Pour enregistrer les vues de contrôle ou un tour filmé image par image :
+
+```bash
+godot --path . -- vues=/tmp/vues
+godot --path . -- film=/tmp/film
+```

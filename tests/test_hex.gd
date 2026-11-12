@@ -22,6 +22,8 @@ func test_aller_retour() -> void:
 	for cell in [Vector2i(5, 6), Vector2i(5, 7)]:
 		for d in opposite:
 			assert_eq(Hex.step(Hex.step(cell, d), opposite[d]), cell, d)
+			assert_eq(Hex.opposite(d), opposite[d])
+			assert_eq(Hex.opposite(opposite[d]), d)
 
 
 func test_distance() -> void:

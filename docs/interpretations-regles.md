@@ -13,6 +13,7 @@ Ce que le livret ou le plateau ne disent pas clairement, et la lecture retenue p
 7. **Balustrade de la terrasse.** Une balustrade sépare la terrasse nord du jardin sur toute sa longueur, et une autre borde le perron. Le livret n'en dit rien. À trancher : obstacle, ou simple décor ?
 8. **Arbres.** Sept massifs, relevés sur 21 cases. Ils servent à la règle des fenêtres « adjacentes à un arbre ».
 9. **Étages.** Le saut par une fenêtre sans arbre suggère des fenêtres en hauteur, mais le plan n'a qu'un niveau. On garde un seul niveau.
+21. **Deux ouvertures côte à côte.** Sept fois sur le plan, une porte touche une autre porte ou une fenêtre (par exemple la porte [22, 11] et la fenêtre [23, 10]). Lecture retenue : on passe de l'une à l'autre si elles se touchent du même côté de leurs murs, c'est-à-dire si aucun mur n'est dessiné entre elles. C'est aussi ce que montre la maquette 3D.
 
 ## Mobilier
 
