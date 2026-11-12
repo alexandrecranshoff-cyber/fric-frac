@@ -8,6 +8,7 @@ extends Node3D
 ## Contrôle sans écran (après « -- » sur la ligne de commande) :
 ##   auto=N        joue N tours de voleur tout seul, en solo (graine=… pour la fixer)
 ##   vues=dossier  enregistre une image par tour joué, puis quitte
+##   vitrine=dossier  plateau ouvert, un meuble sur deux découvert : gros plans des pièces, puis quitte
 
 const NIGHT_COLOR := Color("0b1020")
 const FOG_COLOR := Color(0.0, 0.004, 0.015, 0.9)
@@ -92,6 +93,8 @@ func _ready() -> void:
 			_auto_folder = argument.trim_prefix("vues=")
 		elif argument.begins_with("graine="):
 			auto_seed = int(argument.trim_prefix("graine="))
+		elif argument.begins_with("vitrine="):
+			_showcase.call_deferred(argument.trim_prefix("vitrine="))
 	if _auto_turns > 0:
 		_auto_rng.seed = 7
 		Engine.time_scale = 4.0
@@ -99,6 +102,26 @@ func _ready() -> void:
 			DirAccess.make_dir_recursive_absolute(_auto_folder)
 		seed_value = auto_seed if auto_seed >= 0 else 1982
 		_start("solo", 1, false, seed_value)
+
+
+## Contrôle de l'habillage : meubles sous housse, découverts et vidés, gardes et dormeurs, vus de près.
+func _showcase(folder: String) -> void:
+	DirAccess.make_dir_recursive_absolute(folder)
+	await _start("solo", 1, true, 1982)
+	for f in state.furniture:
+		f.revealed = f.id % 2 == 0 or f.type == "lit"
+		f.emptied = f.revealed and f.id % 4 == 0
+	_refresh()
+	hud.visible = false
+	# Nom, case visée, angle, inclinaison, zoom.
+	var views := [["ensemble", Vector2i(13, 11), 20.0, 1.1, 24.0], ["nord_ouest", Vector2i(7, 7), 35.0, 0.9, 8.0],
+		["nord_est", Vector2i(19, 7), -30.0, 0.9, 8.0], ["hall", Vector2i(13, 14), 20.0, 0.9, 7.0],
+		["sud_ouest", Vector2i(7, 15), 30.0, 0.9, 8.0], ["sud_est", Vector2i(19, 15), -25.0, 0.9, 8.0]]
+	for v in views:
+		camera.set_home(VillaView.to_world(v[1]), v[2], v[3], v[4])
+		_auto_folder = folder
+		await _auto_snapshot(v[0])
+	get_tree().quit()
 
 
 func _connect_hud() -> void:

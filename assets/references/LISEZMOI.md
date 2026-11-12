@@ -37,6 +37,38 @@ Modèle 3D tiré de ces trois vues (mêmes réglages, 1,92 m) : génération `fa
 
 Les armes tenues en main (couteau, matraque) sont rangées sur les vues : une arme dans la main gênerait la peau et les animations. Elles pourront revenir en objets séparés, accrochés à l'os de la main.
 
+## Le garde
+
+| Fichier | Rôle | Génération Higgsfield |
+| --- | --- | --- |
+| (non gardée) | illustration du garde en livrée et lanterne | `c4e33272-9cac-4632-bde9-3285309845bc` |
+| `garde/garde_pose_a_face.png` | vue de face en pose A, pour la 3D | `147c6fcb-fbb2-4f54-b0d7-bdee4b7ffad6` |
+| `garde/garde_pose_a_profil.png` | vue de profil | `fe9af8e0-00d4-4af3-9299-121dd00ed8a1` |
+| `garde/garde_pose_a_dos.png` | vue de dos en pose A | `eb777c0e-ae86-4ea7-8430-e6157c5a99f2` |
+
+Modèle 3D tiré de ces trois vues (« multi_image_to_3d », texturé, riggé, 1,78 m) : génération `4a8058b6-71cb-4fb6-91aa-00bba62e6b94`. Animations (« 3d_rigging », 1,78 m) ci-dessous ; voir `docs/personnages/garde_verification.md`.
+
+| Animation | Mouvement de la bibliothèque | Génération Higgsfield |
+| --- | --- | --- |
+| `attente` | Idle (n° 0) | `362d7068-722c-47af-b3cb-c6fed90bd3e1` |
+| `ronde` | Walk_Slowly_and_Look_Around (n° 341), coupée en boucle | `ac270af7-a012-4044-ac92-0d23a7843157` |
+| `course` | Run_02 (n° 14) | `cdf6492d-7ed3-4d75-9a42-803b889b9e96` |
+
+## Les meubles et le dormeur
+
+Une image par meuble (Nano Banana 2.1), puis un modèle 3D (« sam_3_3d », ou Tripo H3.1 quand SAM échouait), préparé par `tools/blender/preparer_meuble.py`. Bruts dans `assets/models/meubles/<type>/source/`.
+
+| Meuble | Image | Modèle 3D | Réglages de `preparer_meuble.py` |
+| --- | --- | --- | --- |
+| `secretaire` | `f7afaf8a-d5c5-476a-b00a-04b854237f9c` | Tripo `80976e55-e420-499a-9f50-26885555a3c7` | `hauteur=1.15 quart=-1` |
+| `coffre_fort` | `5df0a54f-eac3-4233-abd8-e240779b7e0b` | SAM `3657a084-1b66-4ded-bd0f-7f0508298f70` | `hauteur=0.85` |
+| `armoire` | `160745bb-2942-4d6d-b558-909cf8c4ac3c` | SAM `f5e8cf62-ce45-4b4e-9aa8-98450d56977a` | `hauteur=1.4` |
+| `gueridon` | `317c788b-82c3-4fba-b058-12a7b810bb02` | Tripo `53bd8067-4fde-4825-b020-1e282424c8b7` | `hauteur=1.0` |
+| `fauteuil` | `644f0927-cc59-4d22-b14b-d8f07757ac99` | SAM `fc441788-7c78-4ad7-b553-cf946cff49b4` | `hauteur=0.95` |
+| `lit` | `5f638ffe-4bd3-4592-8ce0-789902aaefe6` | SAM `10a16261-d4e7-43c9-b970-7099c5e7a1e8` | `hauteur=1.0 quart=1` |
+| `housse` (meuble encore caché) | `8b13677a-e685-4211-97bc-e0ef1eb37782` | SAM `fc76e0ae-44a6-4ce4-84e1-88d4504c15cb` | `hauteur=0.9` |
+| `dormeur` (sous sa couverture) | `adeeb81b-d3a2-4698-9b2a-fc55035ef2b3` | Tripo `d228ea3e-3b3d-46d7-b847-3c45d4de8884` | `hauteur=0.4` (tête vers -x) |
+
 ## À ranger plus tard
 
 Le reste de la bande retenue (Serrurier `92da6d4f`, Môme `826c0c37`) suivra si le jeu en a besoin, d'après Alexandre (12 novembre 2026).
