@@ -5,11 +5,12 @@ Jeu vidéo de cambriolage tactique au tour par tour, adapté du jeu de plateau �
 ## Méthode de travail
 
 - Le projet avance par étapes. **Chaque étape est validée par Alexandre avant de passer à la suivante.**
-- Étapes prévues : structure du dépôt, transcription des règles et du plan de la villa, document de game design, moteur de règles et tests, visuels de référence, maquette grise jouable, habillage, versions web et PC, essais de jeu.
+- Étapes prévues : structure du dépôt, transcription des règles et du plan de la villa, document de game design, moteur de règles et tests, visuels de référence, maquette grise jouable, habillage, version PC, essais de jeu.
 
 ## Cible et décisions de design
 
-- Plateforme : navigateur (export web Godot, rendu Compatibilité / WebGL 2) et PC. Garder les assets légers.
+- Plateforme : PC seul (Windows, Linux en second), décision d'Alexandre du 12 novembre 2026 : la version web est abandonnée. Rendu Forward+ (Vulkan). Machine de référence : carte NVIDIA RTX 3050.
+- Qualité graphique : viser le maximum d'animation et de texture que tient la RTX 3050, plutôt que la légèreté. Personnages riggés et animés (squelette Higgsfield, 1,65 m pour la Chatte), textures 2048 (4096 si utile) compressées en BPTC haute qualité à l'import, LOD générés, ombres douces, SSAO et SSIL. Réglages dans `project.godot`.
 - Plateau hexagonal : la villa de Neuilly, son jardin et ses gardes.
 - Infiltration au tour par tour. Les trois tableaux du livret sont gardés tels quels : 6 points d'action par voleur, 1 point = 1 case de déplacement ou 1 colonne du tableau d'effraction. Valeurs à régler à la maquette grise.
 - Gardes : règle du livret (ronde en ligne droite, dé de direction à chaque obstacle). Ils parcourent 6 cases par tour de table, 12 dès la première alerte et jusqu'à la fin.
@@ -38,7 +39,11 @@ Communication, documentation et messages de commit en français. Code (noms de v
 - `data/regles_video.json` : réglages de l'adaptation vidéo (points d'action, allure des gardes, horloge du solo, tenues).
 - `scripts/ui/` et `scenes/` : affichage, caméra, interface. Pour l'instant, la maquette 3D de la villa : `villa_outline.gd` redresse le tracé des murs pour l'affichage (les règles gardent les cases), `villa_view.gd` construit la villa depuis `VillaPlan`, `orbit_camera.gd` la fait visiter.
 - `assets/` : modèles (glTF/GLB), sprites, textures, audio. Fichiers lourds suivis par Git LFS.
+  - `assets/models/personnages/<nom>/` : le GLB retouché que lit le jeu et ses textures extraites par Godot ; `source/` garde le GLB brut sorti de Higgsfield, ignoré par Godot et par l'export.
+  - `assets/references/` : images de référence des personnages (ignorées par Godot), avec leurs numéros de génération Higgsfield dans `LISEZMOI.md`.
 - `tools/` : petits outils hors jeu (dessin du plan, fabrication des matières de `assets/textures/`).
+  - `tools/blender/` : scripts Blender sans écran. `verifier_personnage.py` contrôle maillage, squelette, peau et matière d'un GLB et fait des rendus de face, de dos et en pose ; `rehausser_texture.py` redonne contraste et couleur à la texture d'un modèle Higgsfield et réexporte le GLB.
+- `scenes/banc_personnage.tscn` : banc d'essai d'un personnage (éclairage atelier ou nuit, tourniquet, pose de contrôle ; `-- vues=dossier` pour les rendus).
 - `tests/` : tests automatiques des règles (`godot --headless --path . -s tests/run_tests.gd`).
 
 ## Principes
@@ -50,4 +55,12 @@ Communication, documentation et messages de commit en français. Code (noms de v
 
 ## Assets
 
-Pipeline prévu : Higgsfield (images, fiches perso, 3D, audio) → retouche Blender → export glTF → import Godot. Nommer les fichiers en `snake_case` sans accents.
+Pipeline : Higgsfield (images, fiches perso, 3D riggée, audio) → retouche Blender (`tools/blender/`) → export glTF → import Godot. Nommer les fichiers en `snake_case` sans accents.
+
+Pour un personnage :
+1. Ranger le GLB brut dans `assets/models/personnages/<nom>/source/` et ses images de référence dans `assets/references/<nom>/`.
+2. Le contrôler : `python tools/blender/verifier_personnage.py source.glb dossier --rendus`.
+3. Rehausser sa texture : `python tools/blender/rehausser_texture.py source.glb assets/models/personnages/<nom>/<nom>.glb` (réglages en `clé=valeur`, voir l'en-tête du script).
+4. Importer dans Godot, puis passer les textures extraites en « VRAM Compressed » haute qualité (normales : « Normal Map » activé), et le vérifier au banc d'essai.
+
+Blender sans écran dans le cloud : le site de Blender est bloqué, mais le module Python `bpy` de PyPI (Blender 5.3, Python 3.13) s'installe avec `uv pip install bpy==5.3.0`. Godot en Forward+ sans écran : pilote Vulkan logiciel `mesa-vulkan-drivers` (llvmpipe) et `xvfb-run godot --rendering-driver vulkan`.

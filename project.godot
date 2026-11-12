@@ -8,7 +8,7 @@ config_version=5
 config/name="Fric-Frac"
 config/description="Jeu de cambriolage tactique au tour par tour dans une villa de Neuilly."
 run/main_scene="res://scenes/main.tscn"
-config/features=PackedStringArray("4.6", "GL Compatibility")
+config/features=PackedStringArray("4.6", "Forward Plus")
 
 [display]
 
@@ -19,8 +19,19 @@ window/stretch/aspect="expand"
 
 [rendering]
 
-renderer/rendering_method="gl_compatibility"
-renderer/rendering_method.mobile="gl_compatibility"
-lights_and_shadows/directional_shadow/size=4096
-lights_and_shadows/directional_shadow/soft_shadow_filter_quality=3
-textures/default_filters/anisotropic_filtering_level=2
+renderer/rendering_method="forward_plus"
+textures/vram_compression/import_etc2_astc=false
+textures/default_filters/anisotropic_filtering_level=4
+textures/canvas_textures/default_texture_filter=2
+anti_aliasing/quality/msaa_3d=2
+anti_aliasing/quality/use_debanding=true
+lights_and_shadows/directional_shadow/size=8192
+lights_and_shadows/directional_shadow/soft_shadow_filter_quality=4
+lights_and_shadows/positional_shadow/soft_shadow_filter_quality=4
+lights_and_shadows/positional_shadow/atlas_size=8192
+global_illumination/sdfgi/probe_ray_count=2
+environment/ssao/quality=3
+environment/ssil/quality=3
+environment/screen_space_reflection/roughness_quality=3
+environment/subsurface_scattering/subsurface_scattering_quality=2
+mesh_lod/lod_change/threshold_pixels=1.0

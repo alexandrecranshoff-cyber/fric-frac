@@ -1,6 +1,6 @@
 # Fric-Frac
 
-Jeu de cambriolage tactique au tour par tour, en 3D et jouable dans le navigateur : des gentlemen cambrioleurs pénètrent dans une villa de Neuilly pour rafler le plus de butin possible sans se faire voir des gardes, ni réveiller les dormeurs.
+Jeu de cambriolage tactique au tour par tour, en 3D, pour PC : des gentlemen cambrioleurs pénètrent dans une villa de Neuilly pour rafler le plus de butin possible sans se faire voir des gardes, ni réveiller les dormeurs.
 
 Adapté du jeu de plateau paru en encart de Jeux & Stratégie (1982). Projet en cours : voir `CLAUDE.md` pour les étapes.
 
@@ -8,7 +8,8 @@ Adapté du jeu de plateau paru en encart de Jeux & Stratégie (1982). Projet en 
 
 - [Godot 4.6](https://godotengine.org/download)
 - [Git LFS](https://git-lfs.com/) (`git lfs install` une fois sur la machine)
-- [Blender](https://www.blender.org/) pour les assets 3D
+- [Blender](https://www.blender.org/) pour les assets 3D (ou le module Python `bpy`)
+- Une carte graphique compatible Vulkan (rendu Forward+ ; machine de référence : RTX 3050)
 
 ## Démarrer
 
@@ -55,3 +56,12 @@ godot --path . -- film=/tmp/film
 ```
 
 Les matières sont calculées, pas photographiées : `python3 tools/generer_textures.py` les refabrique à l'identique dans `assets/textures/` (numpy et Pillow).
+
+## Personnages
+
+Le banc d'essai `scenes/banc_personnage.tscn` montre un personnage sur un parquet (la Chatte par défaut). Clic droit glissé : tourner ; molette : zoom ; L : éclairage atelier ou nuit ; Espace : tourniquet ; P : pose de contrôle.
+
+```bash
+godot --path . scenes/banc_personnage.tscn -- vues=/tmp/banc
+python tools/blender/verifier_personnage.py assets/models/personnages/chatte/source/chatte_higgsfield_v2.glb /tmp/verif --rendus
+```
