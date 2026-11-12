@@ -2,7 +2,7 @@ class_name MeshBuilder
 extends RefCounted
 ## Assemble beaucoup de petits volumes (dalles, murs, poteaux) en un seul maillage, avec pour chaque
 ## sommet une couleur et une position dans la matière. Toute la villa se dessine ainsi en très peu
-## d'appels : indispensable dans un navigateur.
+## d'appels de dessin.
 ## Les points sont donnés sur le plan : x vers l'est, y vers le sud. La matière se répète tous les
 ## `tile` mètres (une case fait un mètre de large).
 
@@ -22,6 +22,16 @@ func top(points: PackedVector2Array, height: float, color := Color.WHITE, tile :
 	for i in range(1, pts.size() - 1):
 		for p in [pts[0], pts[i], pts[i + 1]]:
 			_vertex(Vector3(p.x, height, p.y), Vector3.UP, color, p.rotated(turn) / tile)
+
+
+## Face horizontale dont la matière couvre une seule fois le rectangle centré sur `center`, de
+## demi-côtés `half`, tourné de `turn` : un tapis, un médaillon.
+func top_fitted(points: PackedVector2Array, height: float, center: Vector2, half: Vector2, turn := 0.0) -> void:
+	var pts := _clockwise(points)
+	for i in range(1, pts.size() - 1):
+		for p in [pts[0], pts[i], pts[i + 1]]:
+			var local: Vector2 = (p - center).rotated(-turn) / half
+			_vertex(Vector3(p.x, height, p.y), Vector3.UP, Color.WHITE, local * 0.5 + Vector2(0.5, 0.5))
 
 
 ## Les faces verticales d'un contour, de la hauteur `low` à `high`.
@@ -50,7 +60,8 @@ func prism(points: PackedVector2Array, low: float, high: float, color := Color.W
 	top(points, high, color, tile)
 
 
-func build() -> ArrayMesh:
+## `tangents` : calcule aussi les tangentes, dont une matière à normales a besoin.
+func build(tangents := false) -> ArrayMesh:
 	var arrays := []
 	arrays.resize(Mesh.ARRAY_MAX)
 	arrays[Mesh.ARRAY_VERTEX] = _vertices
@@ -59,7 +70,12 @@ func build() -> ArrayMesh:
 	arrays[Mesh.ARRAY_TEX_UV] = _uvs
 	var mesh := ArrayMesh.new()
 	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
-	return mesh
+	if not tangents:
+		return mesh
+	var tool := SurfaceTool.new()
+	tool.create_from(mesh, 0)
+	tool.generate_tangents()
+	return tool.commit()
 
 
 ## Contour d'une bande droite de largeur donnée entre deux points.

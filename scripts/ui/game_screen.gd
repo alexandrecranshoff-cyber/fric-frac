@@ -116,7 +116,9 @@ func _showcase(folder: String) -> void:
 	# Nom, case visée, angle, inclinaison, zoom.
 	var views := [["ensemble", Vector2i(13, 11), 20.0, 1.1, 24.0], ["nord_ouest", Vector2i(7, 7), 35.0, 0.9, 8.0],
 		["nord_est", Vector2i(19, 7), -30.0, 0.9, 8.0], ["hall", Vector2i(13, 14), 20.0, 0.9, 7.0],
-		["sud_ouest", Vector2i(7, 15), 30.0, 0.9, 8.0], ["sud_est", Vector2i(19, 15), -25.0, 0.9, 8.0]]
+		["sud_ouest", Vector2i(7, 15), 30.0, 0.9, 8.0], ["sud_est", Vector2i(19, 15), -25.0, 0.9, 8.0],
+		["salon", Vector2i(10, 7), 15.0, 0.6, 4.5], ["grand_salon", Vector2i(16, 8), -20.0, 0.6, 5.0],
+		["rue", Vector2i(13, 23), 10.0, 0.45, 7.0], ["jardin", Vector2i(23, 11), -40.0, 0.6, 6.0]]
 	for v in views:
 		camera.set_home(VillaView.to_world(v[1]), v[2], v[3], v[4])
 		_auto_folder = folder

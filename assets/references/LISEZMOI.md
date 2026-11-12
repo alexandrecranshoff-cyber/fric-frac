@@ -69,6 +69,28 @@ Une image par meuble (Nano Banana 2.1), puis un modèle 3D (« sam_3_3d », ou T
 | `housse` (meuble encore caché) | `8b13677a-e685-4211-97bc-e0ef1eb37782` | SAM `fc76e0ae-44a6-4ce4-84e1-88d4504c15cb` | `hauteur=0.9` |
 | `dormeur` (sous sa couverture) | `adeeb81b-d3a2-4698-9b2a-fc55035ef2b3` | Tripo `d228ea3e-3b3d-46d7-b847-3c45d4de8884` | `hauteur=0.4` (tête vers -x) |
 
+## Le décor de la villa
+
+Images Nano Banana 2.1 du 12 novembre 2026. Les matières passent par `tools/preparer_matiere.py` (couleur, normales et rugosité 2048 dans `assets/textures/villa/`), tapis et tableaux sont recadrés dans `assets/textures/villa/decor/`, les accessoires 3D (Tripo H3.1) sont préparés par `tools/blender/preparer_meuble.py` dans `assets/models/decor/<nom>/`.
+
+| Élément | Image | Réglages ou modèle 3D |
+| --- | --- | --- |
+| `parquet` (point de Hongrie) | `e55950d2-f573-4642-8f71-b816d604700b` | `relief=2 rugosite=0.4,0.75` |
+| `carrelage` (marbre à cabochons) | `5e0c5fb6-7cf3-4937-9567-7d6c6d1a3f57` | `relief=1.5 rugosite=0.15,0.5` |
+| `boiserie` (murs intérieurs) | `5735b9da-e37c-4bc8-b319-3dfcbf49e709` | `relief=2.5 rugosite=0.35,0.7` |
+| `facade` (pierre de taille) | `c0821ab4-2443-4560-86ca-6b7531a19351` | `relief=2 rugosite=0.7,0.95` |
+| `dallage` (terrasse, perron) | `97fb995f-160f-463b-8fa0-89cd5e1db49e` | `relief=2 rugosite=0.7,0.95` |
+| `herbe` | `2f6ac03c-e9f1-479f-b8a3-d3534ee6e07e` | `raccord=oui relief=2 rugosite=0.85,1.0 clarte=0.85` |
+| `gravier` | `19cee380-7be1-42e1-81fd-3c14c3b37a5d` | `raccord=oui relief=3 rugosite=0.8,1.0` |
+| `brique` (mur d'enceinte) | `bccfb52d-a82c-48f1-9a45-6fee2eed658f` | `relief=3 rugosite=0.75,0.95` |
+| `tapis_rouge`, `tapis_jaune`, `tapis_brun`, `tapis_rond` | `4801bd84-e7db-4f94-8e41-b4bf0eff2e48`, `8dabd704-3e75-4810-912c-7e97d7079348`, `c6b6ed20-6ef2-47ff-8743-1f105726b4ba`, `e8cd4de0-34d8-46f1-bbe3-554537f2ba3f` | recadrés |
+| `tableau_monsieur`, `tableau_paysage`, `tableau_dame`, `tableau_nature_morte` | `4533f6fa-4024-4771-bfdc-475de56795af`, `11c4b749-d475-419e-9a31-e90aedf998d7`, `cef8efd1-3779-40fc-a6e3-8fb656e2b47d`, `ec6703c4-1eea-42c6-bfc5-bfdf38dbea06` | recadrés, 1024 |
+| `arbre` (marronnier) | `68e0b19b-014d-4493-acd0-a25145f45a90` | Tripo `5ba976bc-f64f-46e8-af05-7ce35bbaed6e`, `hauteur=2.4 triangles=15000` |
+| `reverbere` | `f39aea74-9243-4c38-8849-7de7e1573c04` | Tripo `c8f58213-b413-4938-8733-d9fafe7a9ca4`, `hauteur=2.9 triangles=8000` |
+| `lampe_petrole` | `788758b3-f99d-4522-9499-5521a0eecfea` | Tripo `21ccb810-1626-4c81-91fe-5b00b50c4cd5`, `hauteur=0.34 triangles=4000` |
+
+La moquette des chambres reste la matière calculée, teintée par pièce : Higgsfield a refusé deux fois l'image.
+
 ## À ranger plus tard
 
 Le reste de la bande retenue (Serrurier `92da6d4f`, Môme `826c0c37`) suivra si le jeu en a besoin, d'après Alexandre (12 novembre 2026).
