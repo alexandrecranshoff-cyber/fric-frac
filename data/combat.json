@@ -8,6 +8,15 @@
     "revolver": ["ko", "ko", "ko", "tue", "tue", "tue"]
   },
   "a_distance": ["couteau", "revolver"],
+  "modes": {
+    "_note": "Façons d'attaquer : colonne du tableau, au contact ou à distance, objet nécessaire. Le revolver tenu par le canon sert de matraque, sans bruit.",
+    "main_nue":      {"nom": "à main nue", "colonne": "main_nue", "distance": false},
+    "matraque":      {"nom": "à la matraque", "colonne": "matraque", "distance": false, "objet": "matraque"},
+    "couteau":       {"nom": "au couteau", "colonne": "couteau", "distance": false, "objet": "couteau"},
+    "couteau_lance": {"nom": "couteau lancé", "colonne": "couteau", "distance": true, "objet": "couteau"},
+    "revolver":      {"nom": "au revolver", "colonne": "revolver", "distance": true, "objet": "revolver", "alarme": true},
+    "crosse":        {"nom": "à coups de crosse", "colonne": "matraque", "distance": false, "objet": "revolver"}
+  },
   "malus_par_case_d_ecart": 1,
   "tours_ko": 2,
   "arme_des_gardes": "revolver",

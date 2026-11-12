@@ -40,6 +40,20 @@ func d6() -> int:
 	return _rng.randi_range(1, 6)
 
 
+## Entier au hasard de 0 à `count` - 1, pour les tirages qui ne sont pas des dés (place des meubles).
+func pick(count: int) -> int:
+	return _rng.randi_range(0, count - 1)
+
+
+## Mélange une liste sur place, avec la graine de la partie.
+func shuffle(items: Array) -> void:
+	for i in range(items.size() - 1, 0, -1):
+		var j := pick(i + 1)
+		var kept = items[i]
+		items[i] = items[j]
+		items[j] = kept
+
+
 ## Lance `count` D6 et ajoute `bonus`. Le résultat est gardé dans l'historique
 ## pour que l'interface puisse afficher les dés.
 func roll(count: int, bonus: int = 0, label: String = "") -> Dictionary:

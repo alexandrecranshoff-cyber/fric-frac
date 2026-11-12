@@ -35,6 +35,14 @@ static func opposite(direction: String) -> String:
 	return DIRECTIONS[(DIRECTIONS.find(direction) + 3) % 6]
 
 
+## Direction qui mène d'une case à sa voisine, ou "" si les deux cases ne se touchent pas.
+static func direction_to(from: Vector2i, to: Vector2i) -> String:
+	for d in DIRECTIONS:
+		if step(from, d) == to:
+			return d
+	return ""
+
+
 ## Les six cases voisines, dans l'ordre de DIRECTIONS.
 static func neighbors(cell: Vector2i) -> Array[Vector2i]:
 	var result: Array[Vector2i] = []

@@ -6,6 +6,9 @@ extends RefCounted
 const OUTSIDE := "dehors"
 const OUTSIDE_CHARS := ".,~_/"
 const ENCLOSURE_CHARS := "#="
+## Terrasse et perron, bordés d'une balustrade ; jardin et cour, en contrebas.
+const RAISED_CHARS := "~_"
+const GROUND_CHARS := ".,"
 
 var rows: Array
 var rooms: Dictionary
@@ -67,6 +70,41 @@ func is_opening(c: Vector2i) -> bool:
 
 func is_enclosure(c: Vector2i) -> bool:
 	return ENCLOSURE_CHARS.contains(cell(c))
+
+
+## Case du mur d'enceinte, hors grille : on y monte, on en saute.
+func is_wall(c: Vector2i) -> bool:
+	return cell(c) == "#"
+
+
+## Case de la grille d'entrée.
+func is_gate(c: Vector2i) -> bool:
+	return cell(c) == "="
+
+
+## Type d'une ouverture : "porte_interieure", "porte_exterieure" ou "fenetre" ; "" ailleurs.
+func opening_type(c: Vector2i) -> String:
+	return openings[c]["type"] if openings.has(c) else ""
+
+
+## Zone sur laquelle donne un côté (0 ou 1) d'une ouverture.
+func half_zone(c: Vector2i, side: int) -> String:
+	return _halves(c)[side]
+
+
+## Une case touche-t-elle un arbre ? Les fenêtres voisines d'un arbre se franchissent sans peine.
+func near_tree(c: Vector2i) -> bool:
+	for n in Hex.neighbors(c):
+		if trees.has(n):
+			return true
+	return false
+
+
+## Une balustrade sépare la terrasse et le perron du jardin et de la cour ; l'escalier la contourne.
+func is_balustrade(a: Vector2i, b: Vector2i) -> bool:
+	var ca := cell(a)
+	var cb := cell(b)
+	return (RAISED_CHARS.contains(ca) and GROUND_CHARS.contains(cb)) or (RAISED_CHARS.contains(cb) and GROUND_CHARS.contains(ca))
 
 
 ## Zone qu'une case présente à sa voisine dans une direction donnée. Une case ordinaire n'a qu'une

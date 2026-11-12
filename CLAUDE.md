@@ -33,8 +33,9 @@ Communication, documentation et messages de commit en français. Code (noms de v
 - `docs/interpretations-regles.md` : ce que le livret laisse flou et la lecture retenue.
 - `docs/plan_villa.svg` : plan redessiné depuis `data/villa.json` par `tools/dessiner_plan.py`. À régénérer après toute retouche du plan.
 - `data/` : valeurs chiffrées (tables d'effraction, de combat, de butin, équipement, plan de la villa) en JSON. Ne jamais dupliquer ces chiffres en dur dans le code.
-- `scripts/rules/` : moteur de règles pur (aucune dépendance aux nœuds de scène), entièrement testable.
-- `scripts/ai/` : comportement des pions automatiques (gardes, dormeurs, voleurs adverses joués par l'ordinateur).
+- `scripts/rules/` : moteur de règles pur (aucune dépendance aux nœuds de scène), entièrement testable. `GameState` (pions, meubles, tour), `GameSetup` (mise en place), `Movement`, `BreakIn` (effraction et butin), `NoiseRules` (bruit et alarme), `Combat`, `Fence` (receleur), `TurnFlow`, `Visibility` (brouillard), `GameActions` (gestes du joueur en commandes) et `SaveGame` (graine et gestes, rejouables).
+- `scripts/ai/` : comportement des pions automatiques. `guards.gd` : ronde, alerte et poursuite des gardes. Plus tard : voleurs adverses joués par l'ordinateur.
+- `data/regles_video.json` : réglages de l'adaptation vidéo (points d'action, allure des gardes, horloge du solo, tenues).
 - `scripts/ui/` et `scenes/` : affichage, caméra, interface. Pour l'instant, la maquette 3D de la villa : `villa_outline.gd` redresse le tracé des murs pour l'affichage (les règles gardent les cases), `villa_view.gd` construit la villa depuis `VillaPlan`, `orbit_camera.gd` la fait visiter.
 - `assets/` : modèles (glTF/GLB), sprites, textures, audio. Fichiers lourds suivis par Git LFS.
 - `tools/` : petits outils hors jeu (dessin du plan, fabrication des matières de `assets/textures/`).

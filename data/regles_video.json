@@ -1,0 +1,26 @@
+{
+  "_source": "Réglages de l'adaptation vidéo, décidés dans le document de game design. À régler à la maquette grise.",
+  "points_action": 6,
+  "cout": {
+    "case": 1,
+    "fenetre_sans_arbre": 2,
+    "balustrade": 2,
+    "saut": 1,
+    "grille": 1,
+    "sortie": 1,
+    "attaque": 2
+  },
+  "gardes": {
+    "cases_par_tour_de_table": 6,
+    "facteur_alerte": 2,
+    "ecoute_voleurs": 6,
+    "ecoute_voleurs_alerte": 12
+  },
+  "combat": {"echanges_max": 20},
+  "solo": {"voleurs": 3, "tours": 24, "paliers": [100000, 300000, 600000]},
+  "tenues": {
+    "serrurier": {"nom": "le serrurier", "equipement": ["passe_partout_2"]},
+    "chat": {"nom": "le chat", "equipement": ["chaussures_silencieuses", "pare_balles_2"]},
+    "gros_bras": {"nom": "le gros bras", "equipement": ["matraque", "passe_partout_1"]}
+  }
+}
