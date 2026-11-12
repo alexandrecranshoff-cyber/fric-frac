@@ -42,8 +42,8 @@ Communication, documentation et messages de commit en français. Code (noms de v
   - `assets/models/personnages/<nom>/` : le GLB retouché que lit le jeu et ses textures extraites par Godot ; `source/` garde le GLB brut sorti de Higgsfield, ignoré par Godot et par l'export.
   - `assets/references/` : images de référence des personnages (ignorées par Godot), avec leurs numéros de génération Higgsfield dans `LISEZMOI.md`.
 - `tools/` : petits outils hors jeu (dessin du plan, fabrication des matières de `assets/textures/`).
-  - `tools/blender/` : scripts Blender sans écran. `verifier_personnage.py` contrôle maillage, squelette, peau et matière d'un GLB et fait des rendus de face, de dos et en pose ; `rehausser_texture.py` redonne contraste et couleur à la texture d'un modèle Higgsfield et réexporte le GLB.
-- `scenes/banc_personnage.tscn` : banc d'essai d'un personnage (éclairage atelier ou nuit, tourniquet, pose de contrôle ; `-- vues=dossier` pour les rendus).
+  - `tools/blender/` : scripts Blender sans écran. `verifier_personnage.py` contrôle maillage, squelette, peau et matière d'un GLB et fait des rendus de face, de dos et en pose ; `rehausser_texture.py` redonne contraste et couleur à la texture d'un modèle Higgsfield et réexporte le GLB ; `fusionner_animations.py` rassemble les animations Higgsfield sur le modèle retouché.
+- `scenes/banc_personnage.tscn` : banc d'essai d'un personnage (éclairage atelier ou nuit, tourniquet, pose de contrôle, animations ; `-- vues=dossier` pour les rendus, `-- film=dossier` pour filmer les animations).
 - `tests/` : tests automatiques des règles (`godot --headless --path . -s tests/run_tests.gd`).
 
 ## Principes
@@ -61,6 +61,7 @@ Pour un personnage :
 1. Ranger le GLB brut dans `assets/models/personnages/<nom>/source/` et ses images de référence dans `assets/references/<nom>/`.
 2. Le contrôler : `python tools/blender/verifier_personnage.py source.glb dossier --rendus`.
 3. Rehausser sa texture : `python tools/blender/rehausser_texture.py source.glb assets/models/personnages/<nom>/<nom>.glb` (réglages en `clé=valeur`, voir l'en-tête du script).
-4. Importer dans Godot, puis passer les textures extraites en « VRAM Compressed » haute qualité (normales : « Normal Map » activé), et le vérifier au banc d'essai.
+4. Ses animations : les générer sur Higgsfield (« 3d_rigging » avec `enable_animation` et un numéro de la bibliothèque, sur le GLB brut, à la même taille), puis les rassembler sur le modèle retouché : `python tools/blender/fusionner_animations.py <nom>.glb <nom>.glb attente=idle.glb ...` (le script refuse un squelette dont les articulations diffèrent de plus de 2 cm). Noter les numéros de génération dans `assets/references/LISEZMOI.md` plutôt que garder les GLB bruts. Les boucles se règlent dans le `.import` du modèle (`settings/loop_mode`).
+5. Importer dans Godot, puis passer les textures extraites en « VRAM Compressed » haute qualité (normales : « Normal Map » activé), et le vérifier au banc d'essai.
 
 Blender sans écran dans le cloud : le site de Blender est bloqué, mais le module Python `bpy` de PyPI (Blender 5.3, Python 3.13) s'installe avec `uv pip install bpy==5.3.0`. Godot en Forward+ sans écran : pilote Vulkan logiciel `mesa-vulkan-drivers` (llvmpipe) et `xvfb-run godot --rendering-driver vulkan`.

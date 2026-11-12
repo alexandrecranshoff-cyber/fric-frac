@@ -16,3 +16,18 @@ Modèle 3D tiré de ces trois vues (Higgsfield « multi_image_to_3d », texturé
 ## À ranger plus tard
 
 Le reste de la bande retenue (Serrurier `92da6d4f`, Gros bras `b07b032e`, Apache `17fc3d3b`, Môme `826c0c37`) suivra quand chaque personnage passera en 3D.
+
+## Animations de la Chatte
+
+Générées le 12 novembre 2026 par Higgsfield « 3d_rigging » (bibliothèque Meshy, 8 crédits chacune) sur le modèle v2, puis rassemblées sur `chatte.glb` par `tools/blender/fusionner_animations.py`. Les GLB bruts (un maillage complet par animation, 10 Mo chacun) ne sont pas gardés dans le dépôt : ces numéros permettent de les retélécharger.
+
+| Animation | Mouvement de la bibliothèque | Génération Higgsfield |
+| --- | --- | --- |
+| `attente` | Idle (n° 0) | `40f88240-2940-412c-a598-021b9aa5e017` |
+| `aux_aguets` | Short_Breathe_and_Look_Around (n° 338) | `4507605e-c9db-40db-856a-6ba0fcb6ed35` |
+| `marche_furtive` | Sneaky_Walk_inplace (n° 671) | `ff1d3a8e-ad7f-46fd-b384-9102ee82c95c` |
+| `marche_accroupie` | Cautious_Crouch_Walk_Forward (n° 524) | `852a43c0-a9fd-4dd7-9bb6-647e43b10f28` |
+| `ouvrir_porte` | open_door (n° 285) | `789117ad-cf94-4e59-acce-cd8039131a43` |
+| `ramasser` | Female_Crouch_Pick_Up_Place_Side (n° 274) | `38cde735-dda8-44cb-b5f8-a50981a81327` |
+
+La bibliothèque n'a pas de crochetage de serrure : à faire plus tard (capture vidéo ou retouche dans Blender).
