@@ -1,0 +1,62 @@
+name: Version PC
+
+# Construit le jeu pour Windows et Linux. Les deux archives se téléchargent en bas de la page de
+# l'exécution (« Artifacts »). Se lance à chaque fusion dans main, à la main (« Run workflow »),
+# et sur une PR qui touche à l'export.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - .github/workflows/build.yml
+      - export_presets.cfg
+      - project.godot
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      GODOT_VERSION: "4.6"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+      - name: Installer Godot et ses modèles d'export
+        run: |
+          base="https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-stable"
+          curl -sSL -o godot.zip "${base}/Godot_v${GODOT_VERSION}-stable_linux.x86_64.zip"
+          unzip -q godot.zip
+          mv "Godot_v${GODOT_VERSION}-stable_linux.x86_64" godot
+          curl -sSL -o templates.tpz "${base}/Godot_v${GODOT_VERSION}-stable_export_templates.tpz"
+          folder="$HOME/.local/share/godot/export_templates/${GODOT_VERSION}.stable"
+          mkdir -p "$folder"
+          unzip -q -j templates.tpz "templates/linux_release.x86_64" "templates/windows_release_x86_64.exe" \
+            "templates/version.txt" -d "$folder"
+          rm godot.zip templates.tpz
+      - name: Importer le projet
+        run: ./godot --headless --path . --import
+      - name: Exporter pour Windows et Linux
+        shell: bash
+        run: |
+          mkdir -p build/windows build/linux
+          ./godot --headless --path . --export-release "Windows" build/windows/fric_frac.exe 2>&1 | tee export.txt
+          ./godot --headless --path . --export-release "Linux" build/linux/fric_frac.x86_64 2>&1 | tee -a export.txt
+          test -s build/windows/fric_frac.exe && test -s build/windows/fric_frac.pck
+          test -s build/linux/fric_frac.x86_64 && test -s build/linux/fric_frac.pck
+          cp docs/LISEZMOI_JOUEUR.txt build/windows/LISEZMOI.txt
+          cp docs/LISEZMOI_JOUEUR.txt build/linux/LISEZMOI.txt
+      - name: Essayer la version Linux (une partie automatique, sans écran)
+        shell: bash
+        run: |
+          chmod +x build/linux/fric_frac.x86_64
+          build/linux/fric_frac.x86_64 --headless -- auto=3 2>&1 | tee essai.txt
+          ! grep -q "SCRIPT ERROR" essai.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: fric-frac-windows
+          path: build/windows
+      - uses: actions/upload-artifact@v4
+        with:
+          name: fric-frac-linux
+          path: build/linux

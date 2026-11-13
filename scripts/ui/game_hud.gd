@@ -22,6 +22,8 @@ signal ready_pressed
 signal replay_pressed
 signal menu_pressed
 signal card_pressed(id: int)
+signal resume_pressed
+signal quit_pressed
 
 const INK := Color("f3ead6")
 const DIM := Color("b9ad96")
@@ -66,6 +68,9 @@ var _players_box: SpinBox
 var _open_box: CheckBox
 var _game_root: Control
 var _banner_tween: Tween
+var _pause_panel: Control
+var _options: OptionsPanel
+var _fps: Label
 
 
 func _ready() -> void:
@@ -89,12 +94,19 @@ func _ready() -> void:
 	_build_pass(root)
 	_build_end(root)
 	_build_menu(root)
+	_build_pause(root)
+	_options = OptionsPanel.new(_wood())
+	root.add_child(_options)
+	_build_fps(root)
+	# La pause arrête la partie (minuteries, animations), pas l'interface.
+	process_mode = Node.PROCESS_MODE_ALWAYS
 	show_menu()
 
 
 # --- Ce que montre l'écran de jeu ---
 
 func show_menu() -> void:
+	_pause_panel.visible = false
 	_game_root.visible = false
 	_end_panel.visible = false
 	_pass_panel.visible = false
@@ -569,6 +581,103 @@ func _build_menu(root: Control) -> void:
 	_open_box.add_theme_color_override("font_color", INK)
 	box.add_child(_open_box)
 	box.add_child(_menu_button("Visiter la villa", func(): visit_pressed.emit()))
+	var bottom := HBoxContainer.new()
+	bottom.add_theme_constant_override("separation", 12)
+	box.add_child(bottom)
+	for pair in [["Options", open_options], ["Quitter", func(): quit_pressed.emit()]]:
+		var button := _menu_button(pair[0], pair[1])
+		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		bottom.add_child(button)
+
+
+# --- Pause, options, images par seconde ---
+
+func _build_pause(root: Control) -> void:
+	_pause_panel = ColorRect.new()
+	(_pause_panel as ColorRect).color = Color(0.03, 0.03, 0.05, 0.7)
+	_pause_panel.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_pause_panel.visible = false
+	root.add_child(_pause_panel)
+	var panel := PanelContainer.new()
+	panel.add_theme_stylebox_override("panel", _wood())
+	panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
+	panel.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	panel.grow_vertical = Control.GROW_DIRECTION_BOTH
+	panel.custom_minimum_size = Vector2(440, 0)
+	_pause_panel.add_child(panel)
+	var box := VBoxContainer.new()
+	box.add_theme_constant_override("separation", 14)
+	panel.add_child(box)
+	var title := Label.new()
+	title.text = "Pause"
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_font_override("font", _font(TITLE_FONT, 700))
+	title.add_theme_font_size_override("font_size", 46)
+	title.add_theme_color_override("font_color", ACCENT)
+	box.add_child(title)
+	box.add_child(_menu_button("Reprendre", func(): resume_pressed.emit()))
+	box.add_child(_menu_button("Options", open_options))
+	box.add_child(_menu_button("Abandonner le casse", func(): menu_pressed.emit()))
+	box.add_child(_menu_button("Quitter le jeu", func(): quit_pressed.emit()))
+
+
+func show_pause(on: bool) -> void:
+	_pause_panel.visible = on
+	if not on:
+		_options.visible = false
+
+
+func pause_open() -> bool:
+	return _pause_panel.visible
+
+
+func open_options() -> void:
+	_options.open()
+
+
+func options_open() -> bool:
+	return _options.visible
+
+
+func close_options() -> void:
+	_options.close_panel()
+
+
+func _build_fps(root: Control) -> void:
+	_fps = Label.new()
+	_fps.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
+	_fps.offset_left = -190
+	_fps.offset_right = -16
+	_fps.offset_top = 8
+	_fps.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	_fps.add_theme_font_size_override("font_size", 18)
+	_fps.add_theme_color_override("font_color", ACCENT)
+	_fps.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.9))
+	_fps.add_theme_constant_override("outline_size", 5)
+	_fps.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	root.add_child(_fps)
+
+
+func _process(_delta: float) -> void:
+	_fps.visible = Settings.values["images_par_seconde"]
+	if _fps.visible:
+		_fps.text = "%d images/s" % Engine.get_frames_per_second()
+
+
+## Case à cocher dessinée ici : cadre de laiton, pleine quand elle est cochée.
+static func _check_icon(checked: bool) -> ImageTexture:
+	var size := 22
+	var image := Image.create(size, size, false, Image.FORMAT_RGBA8)
+	for y in size:
+		for x in size:
+			var edge := mini(mini(x, size - 1 - x), mini(y, size - 1 - y))
+			var color := Color(0, 0, 0, 0.35)
+			if edge < 2:
+				color = ACCENT
+			elif checked and edge >= 5:
+				color = ACCENT
+			image.set_pixel(x, y, color)
+	return ImageTexture.create_from_image(image)
 
 
 func _menu_button(text: String, action: Callable) -> Button:
@@ -674,6 +783,8 @@ static func _make_theme() -> Theme:
 	for state in ["font_color", "font_pressed_color", "font_focus_color"]:
 		theme.set_color(state, "CheckBox", INK)
 	theme.set_color("font_hover_color", "CheckBox", ACCENT)
+	theme.set_icon("checked", "CheckBox", _check_icon(true))
+	theme.set_icon("unchecked", "CheckBox", _check_icon(false))
 	theme.set_font("bold_font", "RichTextLabel", _font(BODY_FONT, 700))
 	theme.set_font("italics_font", "RichTextLabel", _font(BODY_FONT, 500, true))
 	return theme

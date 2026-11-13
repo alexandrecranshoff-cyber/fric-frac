@@ -56,6 +56,19 @@ Contrôle sans écran : une partie jouée toute seule, avec une image par tour.
 godot --path . scenes/partie.tscn -- auto=12 vues=/tmp/partie
 ```
 
+## Version PC
+
+Le jeu s'exporte pour Windows et Linux (`export_presets.cfg`). Sur GitHub, l'action « Version PC » le construit à chaque fusion dans `main` (ou à la main, « Run workflow ») : les deux archives, `fric-frac-windows` et `fric-frac-linux`, se téléchargent en bas de la page de l'exécution. Elle lance aussi une courte partie automatique sur la version Linux pour vérifier qu'elle démarre.
+
+À la main, avec les modèles d'export de Godot 4.6 installés :
+
+```bash
+godot --headless --path . --export-release "Windows" build/windows/fric_frac.exe
+godot --headless --path . --export-release "Linux" build/linux/fric_frac.x86_64
+```
+
+En jeu : Échap ouvre la pause et les options (plein écran, synchronisation verticale, qualité graphique de basse à maximale, définition du rendu 3D, volumes), F3 affiche les images par seconde. Les réglages sont gardés dans `user://reglages.cfg`. La notice jointe aux archives est `docs/LISEZMOI_JOUEUR.txt`.
+
 ## Maquette 3D de la villa
 
 Le menu propose aussi « Visiter la villa » (Échap pour revenir) : la villa en 3D, de jour, construite depuis `data/villa.json` : sols en matières (parquet, carrelage, moquette, dallage, herbe, gravier), murs coupés à hauteur d'appui, portes, fenêtres, tapis des salons, mur d'enceinte et grille, arbres et gardes. Les murs sont redressés comme sur le poster ; le quadrillage du jeu reste tracé sur les sols.

@@ -87,7 +87,6 @@ func _build_light() -> void:
 	sun.directional_shadow_mode = DirectionalLight3D.SHADOW_ORTHOGONAL
 	sun.directional_shadow_max_distance = 130.0
 	add_child(sun)
-	get_viewport().msaa_3d = Viewport.MSAA_4X
 
 
 func _build_help() -> void:

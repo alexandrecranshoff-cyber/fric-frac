@@ -2,7 +2,8 @@ class_name GameAudio
 extends Node
 ## Sons de la partie : musique (menu, nuit, alerte) en fondu enchaîné, ambiance du jardin, bruitages
 ## ponctuels et pas en boucle pendant une marche. Les sons sortent de Higgsfield et sont mis au même
-## volume perçu par tools/preparer_son.py : ici, seuls les deux bus (Musique, Bruitages) se règlent.
+## volume perçu par tools/preparer_son.py : seuls les deux bus (Musique, Bruitages) se règlent, dans
+## les options (settings.gd).
 ##
 ## Les sons n'ont aucun effet sur les règles : ils suivent les événements que rejoue l'écran de jeu.
 
@@ -11,8 +12,6 @@ const SOUNDS := ["pas_voleur", "pas_garde", "crochetage", "porte", "fenetre", "t
 	"des", "butin", "sonnerie_alarme", "sifflet", "coup", "saut", "escalade", "aube", "horloge"]
 const MUSICS := ["menu", "nuit", "alerte"]
 const FADE_SECONDS := 2.0
-const MUSIC_DB := -2.0
-const EFFECTS_DB := 0.0
 const AMBIENCE_DB := 0.0
 const VOICES := 8
 
@@ -30,8 +29,7 @@ var _closed := false
 
 
 func _ready() -> void:
-	_make_bus("Musique", MUSIC_DB)
-	_make_bus("Bruitages", EFFECTS_DB)
+	Settings.ensure_buses()
 	for name in SOUNDS:
 		_streams[name] = load(FOLDER + "bruitages/%s.ogg" % name)
 	for name in MUSICS:
@@ -51,16 +49,6 @@ static func _looping(stream: AudioStream) -> AudioStream:
 	if stream is AudioStreamOggVorbis:
 		stream.loop = true
 	return stream
-
-
-static func _make_bus(bus: String, volume_db: float) -> void:
-	if AudioServer.get_bus_index(bus) >= 0:
-		return
-	AudioServer.add_bus()
-	var index := AudioServer.bus_count - 1
-	AudioServer.set_bus_name(index, bus)
-	AudioServer.set_bus_volume_db(index, volume_db)
-	AudioServer.set_bus_send(index, "Master")
 
 
 func _player(bus: String, volume_db := 0.0) -> AudioStreamPlayer:
