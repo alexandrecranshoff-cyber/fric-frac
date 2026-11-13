@@ -130,7 +130,7 @@ func _showcase(folder: String) -> void:
 		camera.set_home(VillaView.to_world(v[1]), v[2], v[3], v[4])
 		_auto_folder = folder
 		await _auto_snapshot(v[0])
-	get_tree().quit()
+	await _quit()
 
 
 func _connect_hud() -> void:
@@ -1010,12 +1010,20 @@ func _build_room_lamps() -> void:
 
 # --- Partie automatique (contrôle sans écran) ---
 
+func _quit() -> void:
+	audio.silence()
+	# Quelques images, le temps que le serveur audio lâche les sons arrêtés.
+	for i in 3:
+		await get_tree().process_frame
+	get_tree().quit()
+
+
 func _auto_next() -> void:
 	if _auto_turns <= 0 or state == null:
 		return
 	if state.over:
 		await _auto_snapshot("fin")
-		get_tree().quit()
+		await _quit()
 		return
 	_bot_play.call_deferred()
 
@@ -1028,7 +1036,7 @@ func _bot_play() -> void:
 		await _auto_snapshot("tour_%02d" % (_auto_shots + 1))
 		_auto_shots += 1
 		if _auto_shots > _auto_turns:
-			get_tree().quit()
+			await _quit()
 			return
 	_auto_actions += 1
 	if thief.skips_turn or _auto_actions > 5:

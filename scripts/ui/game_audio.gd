@@ -26,6 +26,7 @@ var _voices: Array[AudioStreamPlayer] = []
 var _next_voice := 0
 ## Hasard des sons (hauteur, reprise des pas), à part des dés des règles.
 var _random := RandomNumberGenerator.new()
+var _closed := false
 
 
 func _ready() -> void:
@@ -73,7 +74,7 @@ func _player(bus: String, volume_db := 0.0) -> AudioStreamPlayer:
 ## Joue un bruitage une fois. `pitch_spread` varie un peu la hauteur, pour qu'un son répété ne lasse pas.
 func play(name: String, volume_db := 0.0, pitch_spread := 0.06) -> void:
 	var stream: AudioStream = _streams.get(name)
-	if stream == null:
+	if stream == null or _closed:
 		return
 	var p := _voices[_next_voice]
 	_next_voice = (_next_voice + 1) % _voices.size()
@@ -85,6 +86,8 @@ func play(name: String, volume_db := 0.0, pitch_spread := 0.06) -> void:
 
 ## Pas en boucle tant que le pion marche ; `key` distingue les marcheurs (voleur, gardes).
 func start_steps(key: int, name: String, volume_db := 0.0) -> void:
+	if _closed:
+		return
 	var p: AudioStreamPlayer = _steps.get(key)
 	if p == null:
 		p = _player("Bruitages")
@@ -112,7 +115,7 @@ func stop_all_steps() -> void:
 
 ## Passe à la musique donnée (menu, nuit, alerte ; vide pour le silence) en fondu enchaîné.
 func music(name: String) -> void:
-	if name == _music_name:
+	if name == _music_name or _closed:
 		return
 	_music_name = name
 	var old := _music[_music_index]
@@ -131,14 +134,17 @@ func music(name: String) -> void:
 
 ## L'ambiance de nuit du jardin, sous la musique pendant la partie.
 func ambience(on: bool) -> void:
+	if _closed:
+		return
 	if on and not _ambience.playing:
 		_ambience.play()
 	elif not on:
 		_ambience.stop()
 
 
-## Arrête tout avant de quitter : un son qui joue encore à la fermeture resterait tenu par le serveur audio.
-func _exit_tree() -> void:
+## Arrête tout, avant de quitter : un son qui joue encore à la fermeture resterait tenu par le serveur audio.
+func silence() -> void:
+	_closed = true
 	for p in find_children("", "AudioStreamPlayer", false, false):
 		p.stop()
 		p.stream = null
