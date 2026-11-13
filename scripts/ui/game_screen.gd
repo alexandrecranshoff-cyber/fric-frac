@@ -87,6 +87,8 @@ func _ready() -> void:
 	hud = GameHud.new()
 	add_child(hud)
 	audio = GameAudio.new()
+	# La musique continue pendant la pause.
+	audio.process_mode = Node.PROCESS_MODE_ALWAYS
 	add_child(audio)
 	audio.music("menu")
 	_connect_hud()
@@ -149,7 +151,10 @@ func _connect_hud() -> void:
 		hud.hide_pass()
 		_refresh())
 	hud.replay_pressed.connect(func(): _start(mode, players, open_board, seed_value if mode == "jour" else -1))
+	hud.resume_pressed.connect(_set_paused.bind(false))
+	hud.quit_pressed.connect(func(): _quit())
 	hud.menu_pressed.connect(func():
+		_set_paused(false)
 		state = null
 		_clear_board()
 		audio.stop_all_steps()
@@ -217,7 +222,16 @@ func _clear_board() -> void:
 # --- Gestes du joueur ---
 
 func _unhandled_input(event: InputEvent) -> void:
-	if state == null or state.over or _busy:
+	if event is InputEventKey and event.pressed and not event.echo:
+		match (event as InputEventKey).keycode:
+			KEY_F3:
+				Settings.set_value("images_par_seconde", not Settings.values["images_par_seconde"])
+				return
+			KEY_ESCAPE:
+				_escape()
+				get_viewport().set_input_as_handled()
+				return
+	if state == null or state.over or _busy or get_tree().paused:
 		return
 	if event is InputEventMouseMotion:
 		_hover(_cell_under((event as InputEventMouseMotion).position))
@@ -231,9 +245,22 @@ func _unhandled_input(event: InputEvent) -> void:
 		match (event as InputEventKey).keycode:
 			KEY_ENTER, KEY_KP_ENTER:
 				_end_turn()
-			KEY_ESCAPE:
-				hud.close_break_in()
-				_break_lock = -1
+
+
+## Échap : ferme ce qui est ouvert (options, curseur d'effraction), sinon met la partie en pause ou l'en sort.
+func _escape() -> void:
+	if hud.options_open():
+		hud.close_options()
+	elif _break_lock >= 0:
+		hud.close_break_in()
+		_break_lock = -1
+	elif state != null and not state.over:
+		_set_paused(not get_tree().paused)
+
+
+func _set_paused(on: bool) -> void:
+	get_tree().paused = on
+	hud.show_pause(on)
 
 
 ## Case sous le pointeur : le rayon de la caméra coupe le sol, puis la case dont le centre est
@@ -960,8 +987,6 @@ func _build_night() -> void:
 	environment.ambient_light_energy = 0.16
 	environment.tonemap_mode = Environment.TONE_MAPPER_FILMIC
 	environment.tonemap_exposure = 1.0
-	environment.ssao_enabled = true
-	environment.glow_enabled = true
 	environment.glow_intensity = 0.5
 	environment.glow_bloom = 0.0
 	environment.fog_enabled = true
@@ -972,6 +997,8 @@ func _build_night() -> void:
 	var world := WorldEnvironment.new()
 	world.environment = environment
 	add_child(world)
+	# SSAO, SSIL et halo suivent la qualité choisie dans les options.
+	Settings.register_environment(environment)
 	var moon := DirectionalLight3D.new()
 	moon.rotation_degrees = Vector3(-55, 35, 0)
 	moon.light_energy = 0.22
@@ -981,7 +1008,6 @@ func _build_night() -> void:
 	moon.shadow_blur = 2.0
 	moon.directional_shadow_max_distance = 120.0
 	add_child(moon)
-	get_viewport().msaa_3d = Viewport.MSAA_4X
 
 
 ## Une lampe à pétrole par pièce, chaude et basse, au milieu de ses cases.

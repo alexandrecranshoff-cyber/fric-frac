@@ -9,6 +9,13 @@ config/name="Fric-Frac"
 config/description="Jeu de cambriolage tactique au tour par tour dans une villa de Neuilly."
 run/main_scene="res://scenes/partie.tscn"
 config/features=PackedStringArray("4.6", "Forward Plus")
+config/version="0.8.0"
+boot_splash/bg_color=Color(0.03, 0.03, 0.05, 1)
+boot_splash/show_image=false
+
+[autoload]
+
+Settings="*res://scripts/ui/settings.gd"
 
 [display]
 
