@@ -766,8 +766,13 @@ func _play_event(e: Dictionary) -> void:
 			hud.banner("%s est pris !" % p.name, GameHud.DANGER, 2.2)
 			audio.play("coup", -4.0)
 			hud.add_log("[color=#d8553f]%s est arrêté, son butin est perdu.[/color]" % p.name)
-			await get_tree().create_timer(0.8).timeout
-			pieces.place(p)
+			# L'arrestation se voit : la caméra y va, le voleur reste le temps de l'annonce, puis s'efface.
+			# Sans cela, il disparaissait hors champ ou sous l'annonce du tour suivant.
+			pieces.set_pawn_visible(p, true, true)
+			_focus(p)
+			await get_tree().create_timer(2.0).timeout
+			await pieces.vanish(p)
+			_update_cards()
 		"attack":
 			hud.add_log("%s attaque %s %s." % [p.name, _pawn_name(state.get_pawn(int(e["target"]))), data.combat["modes"][e["mode"]]["nom"]])
 		"strike":

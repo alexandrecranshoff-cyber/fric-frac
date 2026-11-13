@@ -209,12 +209,24 @@ func look_at_point(p: Pawn, at: Vector3) -> void:
 
 
 ## Montre ou cache un pion (brouillard) et la silhouette d'un garde perdu de vue.
-func set_pawn_visible(p: Pawn, shown: bool) -> void:
+## `even_gone` : montre aussi un voleur pris, le temps de son arrestation.
+func set_pawn_visible(p: Pawn, shown: bool, even_gone := false) -> void:
 	var node: Node3D = nodes[p.id]
-	var gone := p.status == Pawn.Status.ESCAPED or p.status == Pawn.Status.ARRESTED
+	var gone := not even_gone and (p.status == Pawn.Status.ESCAPED or p.status == Pawn.Status.ARRESTED)
 	if p.is_sleeper():
 		shown = shown and state.get_furniture(p.furniture_id).revealed and p.status != Pawn.Status.DEAD
 	node.visible = shown and not gone
+
+
+## Le voleur pris s'efface : il rapetisse sur place, puis quitte le plateau.
+func vanish(p: Pawn) -> void:
+	var node: Node3D = nodes[p.id]
+	var size := node.scale
+	var tween := create_tween()
+	tween.tween_property(node, "scale", size * 0.05, 0.5).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
+	await tween.finished
+	node.visible = false
+	node.scale = size
 
 
 func show_ghost(guard_id: int, cell: Vector2i, shown: bool) -> void:
