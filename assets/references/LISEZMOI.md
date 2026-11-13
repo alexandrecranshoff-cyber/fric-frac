@@ -91,6 +91,19 @@ Images Nano Banana 2.1 du 12 novembre 2026. Les matières passent par `tools/pre
 
 La moquette des chambres reste la matière calculée, teintée par pièce : Higgsfield a refusé deux fois l'image.
 
+## L'interface
+
+Images Nano Banana 2.1 du 13 novembre 2026, redimensionnées dans `assets/ui/` (les panneaux s'étirent en neuf morceaux, coins ornés gardés tels quels).
+
+| Fichier | Rôle | Génération Higgsfield |
+| --- | --- | --- |
+| `panneau_bois.png` | fiches, carnet, dés, effraction : acajou verni à filets de laiton (256 px, coins de 30 px) | `2894b4be-94be-4109-b58a-4e82e2dfd9e6` |
+| `panneau_papier.png` | rapport de fin de casse : papier vergé à filet double (768 px, coins de 80 px) | `1bc8f197-d2fe-4ebc-86ed-9076a1797f87` |
+| `bouton_laiton.png` | boutons : plaque de laiton biseautée | `7abd7cb2-6b90-4c13-a876-2a747838e07d` |
+| `menu_fond.jpg` | fond du menu : la villa la nuit, la bande à la grille | `82dfbc0b-41a6-4620-9d46-96375e006668` |
+
+Polices sous licence SIL OFL (texte de la licence à côté) dans `assets/fonts/` : EB Garamond pour le texte, Cormorant Garamond pour les titres, toutes deux en fichier variable (la graisse se règle dans `game_hud.gd`). Les dés sont dessinés par le jeu (`scripts/ui/dice_tray.gd`) : aucune image.
+
 ## À ranger plus tard
 
 Le reste de la bande retenue (Serrurier `92da6d4f`, Môme `826c0c37`) suivra si le jeu en a besoin, d'après Alexandre (12 novembre 2026).
