@@ -100,6 +100,8 @@ func _ready() -> void:
 		Engine.time_scale = 4.0
 		if _auto_folder != "":
 			DirAccess.make_dir_recursive_absolute(_auto_folder)
+			# Une image du premier lancer de dés.
+			hud.dice_settled.connect(func(): _auto_snapshot("des"), CONNECT_ONE_SHOT)
 		seed_value = auto_seed if auto_seed >= 0 else 1982
 		_start("solo", 1, false, seed_value)
 
@@ -794,7 +796,7 @@ func _game_over() -> void:
 		var fate: String = STATUS_NAMES.get(t.status, "")
 		var line := "[b]%s[/b] (%s) : %s F" % [t.name, fate, _money(int(r["total"]))]
 		if t.status == Pawn.Status.ESCAPED and int(r["negociable"]) > 0:
-			line += "  [color=#b9ad96](argent %s F, objets %s F divisés par %d)[/color]" % [
+			line += "  [color=#6e5c45](argent %s F, objets %s F divisés par %d)[/color]" % [
 				_money(int(r["argent"])), _money(int(r["negociable"])), int(r["diviseur"])]
 		lines.append(line)
 	lines.append("")
@@ -807,7 +809,7 @@ func _game_over() -> void:
 		lines.append("[center]Butin de la bande : [b]%s F[/b]   %s[/center]" % [_money(int(score["total"])), stars])
 	var path := _save()
 	if path != "":
-		lines.append("[center][color=#b9ad96]Casse enregistré : %s[/color][/center]" % path)
+		lines.append("[center][color=#6e5c45]Casse enregistré : %s[/color][/center]" % path)
 	hud.show_end("\n".join(lines))
 
 
