@@ -34,6 +34,7 @@ var overlay: BoardOverlay
 var pieces: PiecesView
 var hud: GameHud
 var camera: OrbitCamera
+var audio: GameAudio
 
 var mode := "solo"
 var players := 1
@@ -54,6 +55,7 @@ var _busy := false
 var _break_lock := -1
 var _press_at := Vector2.ZERO
 var _rooms_light: Node3D
+var _round := 0
 
 # Partie automatique, pour les contrôles sans écran.
 var _auto_turns := 0
@@ -84,6 +86,9 @@ func _ready() -> void:
 	camera.make_current()
 	hud = GameHud.new()
 	add_child(hud)
+	audio = GameAudio.new()
+	add_child(audio)
+	audio.music("menu")
 	_connect_hud()
 	var auto_seed := -1
 	for argument in OS.get_cmdline_user_args():
@@ -125,7 +130,7 @@ func _showcase(folder: String) -> void:
 		camera.set_home(VillaView.to_world(v[1]), v[2], v[3], v[4])
 		_auto_folder = folder
 		await _auto_snapshot(v[0])
-	get_tree().quit()
+	await _quit()
 
 
 func _connect_hud() -> void:
@@ -147,8 +152,12 @@ func _connect_hud() -> void:
 	hud.menu_pressed.connect(func():
 		state = null
 		_clear_board()
+		audio.stop_all_steps()
+		audio.ambience(false)
+		audio.music("menu")
 		hud.show_menu())
 	hud.card_pressed.connect(func(id: int): _focus(state.get_pawn(id)))
+	hud.dice_thrown.connect(func(): audio.play("des"))
 
 
 # --- Mise en place ---
@@ -179,7 +188,10 @@ func _start(new_mode: String, count: int, open: bool, forced_seed := -1) -> void
 	add_child(pieces)
 	pieces.setup(state)
 	_memory.clear()
+	_round = 0
 	_viewer = state.thieves()[0].player
+	audio.music("nuit")
+	audio.ambience(true)
 	hud.show_game()
 	hud.clear_log()
 	var title: String = {"solo": "Le casse, en solo", "jour": "Le casse du jour", "tour_de_role": "Tour de rôle"}[mode]
@@ -618,8 +630,15 @@ func _play(events: Array) -> void:
 	overlay.clear("chemin")
 	overlay.clear("survol")
 	overlay.clear("bruit")
+	var stepping := -1
 	for e in events:
+		# Les pas d'un garde durent tant qu'il enchaîne les cases, et s'arrêtent avec lui.
+		var guard_id: int = int(e["id"]) if e["type"] == "guard_move" else -1
+		if stepping >= 0 and guard_id != stepping:
+			audio.stop_steps(stepping)
+		stepping = guard_id
 		await _play_event(e)
+	audio.stop_all_steps()
 	pieces.sync_all()
 	_busy = false
 
@@ -630,13 +649,17 @@ func _play_event(e: Dictionary) -> void:
 		"turn":
 			await _on_turn(p, e)
 		"move":
+			audio.start_steps(p.id, "pas_voleur", -6.0 if _silent(p) else 0.0)
 			await pieces.walk(p, e["from"], e["path"])
+			audio.stop_steps(p.id)
 			_update_fog()
 		"climb":
 			hud.add_log("%s grimpe sur le mur." % p.name)
+			audio.play("escalade")
 			await pieces.hop(p, pieces.cell_spot(e["to"]))
 			_update_fog()
 		"jump":
+			audio.play("saut")
 			await pieces.hop(p, pieces.cell_spot(e["to"]))
 			_update_fog()
 		"landing":
@@ -645,6 +668,7 @@ func _play_event(e: Dictionary) -> void:
 			hud.add_log("%s saute dans le jardin%s." % [p.name, "" if ok else " et se fait mal"])
 		"gate":
 			hud.add_log("%s se présente devant la grille." % p.name)
+			audio.play("grille", -6.0)
 			await pieces.hop(p, pieces.cell_spot(e["to"], 0))
 			_update_fog()
 		"leave":
@@ -662,26 +686,33 @@ func _play_event(e: Dictionary) -> void:
 			pieces.refresh_furniture(state.get_furniture(int(e["furniture"])))
 		"work":
 			hud.add_log("%s travaille la serrure : %s (colonne %d)." % [p.name, _points(int(e["total"])), int(e["column"])])
+			audio.play("crochetage")
 			await pieces.gesture(p, "aux_aguets", 0.6)
 		"break_in":
 			var what: String = OPENING_NAMES.get(e["kind"], "")
 			if what == "":
 				what = "le " + data.mobilier["types"][e["kind"]]["nom"]
 			hud.add_log("%s force %s%s." % [p.name, what, "" if int(e["noise"]) == 0 else " (bruit à %s)" % _cells(int(e["noise"]))])
+			audio.play(_break_in_sound(e["kind"]))
 			await pieces.gesture(p, "ramasser" if e["target"].has("furniture") else "ouvrir_porte", 1.3)
 			pieces.place(p)
 			_update_fog()
 		"loot":
 			var entry: Dictionary = e["entry"]
 			var text := _loot_entry_text(entry)
+			if entry["effet"] == "butin":
+				audio.play("butin")
 			await hud.show_dice(e["roll"]["faces"], "Butin : %d" % int(e["roll"]["total"]), text)
 			hud.add_log("Butin (%d) : %s" % [int(e["roll"]["total"]), text])
 		"alarm_bell":
+			audio.play("sonnerie_alarme", 0.0, 0.0)
 			await hud.show_dice(e["roll"]["faces"], "Signal d'alarme", "entendu à %s" % _cells(int(e["roll"]["total"])))
 		"noise":
 			await _noise_wave(e)
 		"alarm":
 			hud.banner("ALERTE !", GameHud.DANGER, 2.0)
+			audio.play("sifflet", 0.0, 0.0)
+			audio.music("alerte")
 			hud.add_log("[color=#d8553f]Alerte : les gardes courent vers le bruit.[/color]")
 			_update_clock()
 			await get_tree().create_timer(0.6).timeout
@@ -697,6 +728,7 @@ func _play_event(e: Dictionary) -> void:
 		"seen":
 			var g := state.get_pawn(int(e["guard"]))
 			hud.banner("%s est repéré !" % p.name, GameHud.DANGER)
+			audio.play("sifflet", -3.0)
 			hud.add_log("[color=#d8553f]Le garde %s a vu %s.[/color]" % [g.name, p.name])
 			await get_tree().create_timer(0.6).timeout
 		"chase":
@@ -705,6 +737,7 @@ func _play_event(e: Dictionary) -> void:
 			hud.add_log("[color=#d8553f]Le garde %s a trouvé un corps.[/color]" % state.get_pawn(int(e["guard"])).name)
 		"arrest":
 			hud.banner("%s est pris !" % p.name, GameHud.DANGER, 2.2)
+			audio.play("coup", -4.0)
 			hud.add_log("[color=#d8553f]%s est arrêté, son butin est perdu.[/color]" % p.name)
 			await get_tree().create_timer(0.8).timeout
 			pieces.place(p)
@@ -716,6 +749,8 @@ func _play_event(e: Dictionary) -> void:
 			var detail := ""
 			if int(e["gap"]) + int(e["armor"]) > 0:
 				detail = " (%d − %d)" % [int(e["roll"]["total"]), int(e["gap"]) + int(e["armor"])]
+			if e["result"] != "ok":
+				audio.play("coup")
 			await hud.show_dice(e["roll"]["faces"], "%s frappe %s" % [_pawn_name(p), _pawn_name(target)], result.capitalize() + detail)
 			hud.add_log("%s → %s : %s." % [_pawn_name(p), _pawn_name(target), result])
 			pieces.place(target)
@@ -726,6 +761,9 @@ func _play_event(e: Dictionary) -> void:
 			pieces.place(p)
 		"dawn":
 			hud.banner("Le jour se lève", GameHud.ACCENT, 2.5)
+			audio.music("")
+			audio.ambience(false)
+			audio.play("aube", 0.0, 0.0)
 			hud.add_log("[b]5 h : le jour se lève. Qui est encore dans la propriété est pris.[/b]")
 			await get_tree().create_timer(1.0).timeout
 		"game_over":
@@ -734,6 +772,10 @@ func _play_event(e: Dictionary) -> void:
 
 func _on_turn(p: Pawn, e: Dictionary) -> void:
 	_update_clock()
+	# L'horloge du hall sonne chaque nouveau tour de table.
+	if int(e["round"]) != _round:
+		_round = int(e["round"])
+		audio.play("horloge", -4.0, 0.0)
 	if mode == "tour_de_role" and p.player != _viewer:
 		_viewer = p.player
 		pieces.sync_all()
@@ -760,6 +802,7 @@ func _guard_move(g: Pawn, from: Vector2i, to: Vector2i) -> void:
 	pieces.show_ghost(g.id, to, false)
 	pieces.set_pawn_visible(g, shown)
 	if shown:
+		audio.start_steps(g.id, "pas_garde", 0.0 if g.alerted else -4.0)
 		await pieces.guard_step(g, to)
 	else:
 		pieces.nodes[g.id].position = pieces.cell_spot(to)
@@ -789,6 +832,8 @@ func _noise_wave(e: Dictionary) -> void:
 
 func _game_over() -> void:
 	overlay.clear("portee")
+	audio.ambience(false)
+	audio.music("menu")
 	hud.set_actions([])
 	var lines := ["[center][b]Fin du casse[/b][/center]", ""]
 	for r in Fence.ranking(state):
@@ -839,6 +884,16 @@ static func _to(text: String) -> String:
 	if text.begins_with("le "):
 		return "Au " + text.substr(3)
 	return "À " + text
+
+
+## Bruitage d'une effraction : porte, fenêtre, grille, coffre-fort ou meuble (tiroir).
+static func _break_in_sound(kind: String) -> String:
+	match kind:
+		"porte_interieure", "porte_exterieure":
+			return "porte"
+		"fenetre", "grille", "coffre_fort":
+			return kind
+	return "tiroir"
 
 
 func _pawn_name(p: Pawn) -> String:
@@ -955,12 +1010,20 @@ func _build_room_lamps() -> void:
 
 # --- Partie automatique (contrôle sans écran) ---
 
+func _quit() -> void:
+	audio.silence()
+	# Quelques images, le temps que le serveur audio lâche les sons arrêtés.
+	for i in 3:
+		await get_tree().process_frame
+	get_tree().quit()
+
+
 func _auto_next() -> void:
 	if _auto_turns <= 0 or state == null:
 		return
 	if state.over:
 		await _auto_snapshot("fin")
-		get_tree().quit()
+		await _quit()
 		return
 	_bot_play.call_deferred()
 
@@ -973,7 +1036,7 @@ func _bot_play() -> void:
 		await _auto_snapshot("tour_%02d" % (_auto_shots + 1))
 		_auto_shots += 1
 		if _auto_shots > _auto_turns:
-			get_tree().quit()
+			await _quit()
 			return
 	_auto_actions += 1
 	if thief.skips_turn or _auto_actions > 5:
