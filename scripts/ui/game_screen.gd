@@ -56,6 +56,8 @@ var _break_lock := -1
 var _press_at := Vector2.ZERO
 var _rooms_light: Node3D
 var _round := 0
+## Voleurs déjà pris dans l'état des règles, mais dont l'arrestation n'a pas encore été montrée.
+var _pending_arrests: Dictionary = {}
 
 # Partie automatique, pour les contrôles sans écran.
 var _auto_turns := 0
@@ -455,8 +457,23 @@ func _memory_of(player: int) -> Dictionary:
 	return _memory[player]
 
 
+## Pièces que voit le joueur. Les règles ont déjà joué tout le geste quand l'écran le rejoue : un voleur
+## qui va être pris y voit encore jusqu'à son arrestation, sinon le garde qui court sur lui serait caché.
 func _zones() -> Dictionary:
-	return Visibility.zones_seen(state, _viewer_thieves())
+	var zones := Visibility.zones_seen(state, _viewer_thieves())
+	for id in _pending_arrests:
+		var t := state.get_pawn(id)
+		if t.player != _viewer:
+			continue
+		var plan := state.plan
+		if plan.is_opening(t.pos):
+			zones[plan.half_zone(t.pos, 0)] = true
+			zones[plan.half_zone(t.pos, 1)] = true
+		elif plan.is_enclosure(t.pos):
+			zones[VillaPlan.OUTSIDE] = true
+		else:
+			zones[plan.zone(t.pos)] = true
+	return zones
 
 
 func _cell_seen(c: Vector2i, zones: Dictionary) -> bool:
@@ -658,6 +675,10 @@ func _play(events: Array) -> void:
 	overlay.clear("survol")
 	overlay.clear("bruit")
 	var stepping := -1
+	_pending_arrests.clear()
+	for e in events:
+		if e["type"] == "arrest":
+			_pending_arrests[int(e["id"])] = true
 	for e in events:
 		# Les pas d'un garde durent tant qu'il enchaîne les cases, et s'arrêtent avec lui.
 		var guard_id: int = int(e["id"]) if e["type"] == "guard_move" else -1
@@ -665,6 +686,8 @@ func _play(events: Array) -> void:
 			audio.stop_steps(stepping)
 		stepping = guard_id
 		await _play_event(e)
+		if e["type"] == "arrest":
+			_pending_arrests.erase(int(e["id"]))
 	audio.stop_all_steps()
 	pieces.sync_all()
 	_busy = false
