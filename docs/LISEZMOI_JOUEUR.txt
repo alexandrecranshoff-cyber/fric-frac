@@ -1,0 +1,26 @@
+FRIC-FRAC — un cambriolage à Neuilly
+Version 0.8 (essai)
+
+Pour jouer
+  Windows : lancer fric_frac.exe (garder fric_frac.pck dans le même dossier).
+            Au premier lancement, Windows peut afficher « Windows a protégé votre ordinateur » :
+            cliquer sur « Informations complémentaires », puis « Exécuter quand même ».
+  Linux   : chmod +x fric_frac.x86_64, puis ./fric_frac.x86_64
+
+Il faut une carte graphique compatible Vulkan, avec des pilotes à jour.
+Le jeu est réglé pour une carte du niveau d'une NVIDIA RTX 3050.
+
+Commandes
+  Clic gauche          marcher, grimper, sauter, forcer un meuble
+  Boutons du bas       forcer une porte ou une fenêtre, attaquer, sortir
+  Entrée               fin du tour
+  Clic droit + glisser tourner la caméra (ou touches A et E)
+  Clic molette + glisser déplacer la caméra ; molette : zoom ; Origine : recentrer
+  Échap                pause, options
+  F3                   images par seconde
+
+Si l'image saccade : Échap > Options, baisser la qualité graphique, puis la définition du rendu 3D.
+
+Les réglages et les casses enregistrés sont gardés dans :
+  Windows : %APPDATA%\Godot\app_userdata\Fric-Frac
+  Linux   : ~/.local/share/godot/app_userdata/Fric-Frac

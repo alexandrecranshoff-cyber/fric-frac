@@ -664,6 +664,22 @@ func _process(_delta: float) -> void:
 		_fps.text = "%d images/s" % Engine.get_frames_per_second()
 
 
+## Case à cocher dessinée ici : cadre de laiton, pleine quand elle est cochée.
+static func _check_icon(checked: bool) -> ImageTexture:
+	var size := 22
+	var image := Image.create(size, size, false, Image.FORMAT_RGBA8)
+	for y in size:
+		for x in size:
+			var edge := mini(mini(x, size - 1 - x), mini(y, size - 1 - y))
+			var color := Color(0, 0, 0, 0.35)
+			if edge < 2:
+				color = ACCENT
+			elif checked and edge >= 5:
+				color = ACCENT
+			image.set_pixel(x, y, color)
+	return ImageTexture.create_from_image(image)
+
+
 func _menu_button(text: String, action: Callable) -> Button:
 	var button := Button.new()
 	button.text = text
@@ -767,6 +783,8 @@ static func _make_theme() -> Theme:
 	for state in ["font_color", "font_pressed_color", "font_focus_color"]:
 		theme.set_color(state, "CheckBox", INK)
 	theme.set_color("font_hover_color", "CheckBox", ACCENT)
+	theme.set_icon("checked", "CheckBox", _check_icon(true))
+	theme.set_icon("unchecked", "CheckBox", _check_icon(false))
 	theme.set_font("bold_font", "RichTextLabel", _font(BODY_FONT, 700))
 	theme.set_font("italics_font", "RichTextLabel", _font(BODY_FONT, 500, true))
 	return theme

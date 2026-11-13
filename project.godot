@@ -10,6 +10,8 @@ config/description="Jeu de cambriolage tactique au tour par tour dans une villa 
 run/main_scene="res://scenes/partie.tscn"
 config/features=PackedStringArray("4.6", "Forward Plus")
 config/version="0.8.0"
+config/icon="res://assets/ui/icone.png"
+config/windows_native_icon="res://assets/ui/icone.ico"
 boot_splash/bg_color=Color(0.03, 0.03, 0.05, 1)
 boot_splash/show_image=false
 
