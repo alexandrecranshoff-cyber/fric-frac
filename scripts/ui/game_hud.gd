@@ -7,6 +7,8 @@ extends CanvasLayer
 
 signal mode_chosen(mode: String, players: int, open_board: bool)
 signal visit_pressed
+## Les dés sont lancés (pour leur bruit).
+signal dice_thrown
 ## Les dés viennent de s'arrêter et leur résultat est affiché (pour les images de contrôle).
 signal dice_settled
 signal end_turn_pressed
@@ -211,6 +213,7 @@ func show_dice(faces: Array, title: String, result: String, seconds := 1.3) -> v
 	_dice_text.text = title
 	_dice_result.text = ""
 	_dice_panel.visible = true
+	dice_thrown.emit()
 	await _dice_tray.roll(faces)
 	var total := 0
 	for f in faces:

@@ -135,3 +135,33 @@ Générées le 12 novembre 2026 comme celles de la Chatte, sur leur modèle mult
 | `marche_accroupie` | Cautious_Crouch_Walk_Forward (n° 524) | `17f60c7b-d953-477c-9134-fda94fe123db` | `3050bb2f-ee23-485f-9128-41eb52df1ffe` |
 | `ouvrir_porte` | open_door (n° 285) | `f6da96d4-1ef8-4082-a202-db0ddd4247eb` | `d609b102-1436-4c32-ab99-f64ce9de18ec` |
 | `ramasser` | Male_Bend_Over_Pick_Up (n° 276) | `0db0c0b8-58f9-4133-b409-4f0172becfe3` | `fb9a564e-fc32-448b-a4d6-10edee54da7d` |
+
+## Sons et musiques
+
+Générés le 13 novembre 2026 sur Higgsfield : bruitages par « mirelo_text_to_audio » (0,75 crédit), musiques instrumentales par « elevenlabs_music_v2_5 » (environ 13 crédits la minute et demie). Mis en OGG au même volume perçu par `tools/preparer_son.py` ; les réglages employés sont notés après chaque nom.
+
+| Son | Génération Higgsfield | Réglages |
+| --- | --- | --- |
+| `bruitages/pas_voleur` | `6c9aa710-9e1a-45b1-9849-1fc05790510f` | volume=-24 boucle=oui fondu=0.3 |
+| `bruitages/pas_garde` | `a1d5adbf-c83d-46ce-b395-645ebf11ef60` | volume=-22 boucle=oui fondu=0.3 |
+| `bruitages/crochetage` | `6f2ddb81-a4f0-4879-9082-8fd435eb3d1a` | volume=-20 |
+| `bruitages/porte` | `bc5924c6-4dd2-4e5e-bff3-b6838366ba8b` | volume=-18 |
+| `bruitages/fenetre` | `e10499a9-4ba5-4432-8a06-ebd36fdba115` | volume=-18 |
+| `bruitages/tiroir` | `e492de3f-1173-454c-8df6-025647aea993` | volume=-19 |
+| `bruitages/coffre_fort` | `1ed3d1cd-aec9-4978-a06d-98f284d77cc2` | volume=-18 debut=1.6 |
+| `bruitages/grille` | `5f4f1293-53fe-4a88-97bf-eed8f34af0b5` | volume=-18 |
+| `bruitages/des` | `c816f6c0-8bfd-4c10-9d54-4865f1e7d505` | volume=-19 |
+| `bruitages/butin` | `22a15b88-e6c6-4a6b-a0e2-bf01a790fd8f` | volume=-18 |
+| `bruitages/sonnerie_alarme` | `195580ba-d92a-41fb-abd9-dde745921ac3` | volume=-15 |
+| `bruitages/sifflet` | `dfca407e-abb1-4b26-b332-2a5ac5c83402` | volume=-17 |
+| `bruitages/coup` | `0a664a12-cb09-4597-a3bb-785aecdc3f69` | volume=-16 |
+| `bruitages/saut` | `bae43ff5-c7af-487e-8720-2bad517ac805` | volume=-19 |
+| `bruitages/escalade` | `57c20054-616a-4f1a-bfe4-9ca9d689484b` | volume=-20 |
+| `bruitages/aube` | `534d3cc2-6caa-439d-bcc8-58898a417491` | volume=-18 |
+| `bruitages/horloge` | `b2329e7d-b341-4117-ab92-c9b4398de5e2` | volume=-20 |
+| `bruitages/ambiance_nuit` | `8485ab4a-2192-42c5-8970-cda6436dd17c` | volume=-28 boucle=oui fondu=4 |
+| `musiques/menu` | `b14c3f8b-19d0-4a5f-8a47-cd26a3727c77` | volume=-20 boucle=oui fondu=4 fin=0.6 |
+| `musiques/nuit` | `28bc9215-a59c-4e13-9b40-e207a12e7aca` | volume=-23 boucle=oui fondu=5 |
+| `musiques/alerte` | `4c77b20d-ba6a-45fb-993a-45f194c1a8b4` | volume=-20 boucle=oui fondu=3 |
+
+Écartés : un premier sifflet sans son de sifflet, une grille sans grincement et des dés trop sourds sur feutre (refaits sur une table de bois).
